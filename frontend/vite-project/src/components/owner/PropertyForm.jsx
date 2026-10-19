@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PropertyForm.css";
 
@@ -69,12 +69,101 @@ const optionalNumberFields = [
 
 function PropertyForm() {
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imageError, setImageError] = useState("");
+  const [uploadProgress, setUploadProgress] = useState("");
+  const [createdPropertyId, setCreatedPropertyId] = useState(null);
+  const previewUrls = useRef(new Set());
+
+// Revoke preview URLs on unmount, not after each image selection.
+  useEffect(() => {
+    return () => {
+      previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+      previewUrls.current.clear();
+    };
+  }, []);
+
+  const handleImageSelect = (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
+    setImageError("");
+
+    if (files.length + selectedImages.length > 20) {
+      setImageError("Maximum 20 images per property.");
+      return;
+    }
+
+    for (const file of files) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        setImageError("Only JPG, PNG and WebP images are allowed.");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setImageError("Each image must be 5 MB or smaller.");
+        return;
+      }
+    }
+
+    const newImages = files.map((file) => {
+      const previewUrl = URL.createObjectURL(file);
+      previewUrls.current.add(previewUrl);
+      return {
+        imageId: crypto.randomUUID(),
+        file,
+        previewUrl,
+        imageType: "room",
+        isCoverImage: false
+      };
+    });
+
+    setSelectedImages((previous) => {
+      const combined = [...previous, ...newImages];
+      if (combined.length && !combined.some((image) => image.isCoverImage)) {
+        return combined.map((image, index) => ({
+          ...image,
+          isCoverImage: index === 0
+        }));
+      }
+      return combined;
+    });
+  };
+
+  const removeImage = (imageId) => {
+    const removed = selectedImages.find((image) => image.imageId === imageId);
+    if (removed) {
+      URL.revokeObjectURL(removed.previewUrl);
+      previewUrls.current.delete(removed.previewUrl);
+    }
+    setSelectedImages((previous) => {
+      const remaining = previous.filter((image) => image.imageId !== imageId);
+      if (remaining.length && !remaining.some((image) => image.isCoverImage)) {
+        return remaining.map((image, index) => ({
+          ...image,
+          isCoverImage: index === 0
+        }));
+      }
+      return remaining;
+    });
+  };
+
+  const setCoverImage = (imageId) => {
+    setSelectedImages((previous) => previous.map((image) => ({
+      ...image,
+      isCoverImage: image.imageId === imageId
+    })));
+  };
+
+  const updateImageType = (imageId, imageType) => {
+    setSelectedImages((previous) => previous.map((image) =>
+      image.imageId === imageId ? { ...image, imageType } : image
+    ));
+  };
 
   const updateField = (name, value) => {
     setFormData((previous) => ({
@@ -158,6 +247,10 @@ function PropertyForm() {
         "Current occupants cannot exceed maximum occupants";
     }
 
+    if (formData.monthlyRent !== "" && Number(formData.monthlyRent) < 0) {
+      errors.monthlyRent = "Monthly rent cannot be negative";
+    }
+
     const integerFields = [
       "maximumOccupants",
       "currentOccupants",
@@ -190,64 +283,94 @@ function PropertyForm() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    if (!validateForm()) return;
+    if (isSubmitting || createdPropertyId || !validateForm()) return;
 
     setIsSubmitting(true);
     setErrorMessage("");
     setSuccessMessage("");
+    setUploadProgress("");
+
+    let propertyId = null;
 
     try {
-      const data = {
-        ...formData
-      };
-
+      const data = { ...formData };
       numberFields.forEach((field) => {
         if (data[field] === "") {
-          if (optionalNumberFields.includes(field)) {
-            delete data[field];
-          }
+          if (optionalNumberFields.includes(field)) delete data[field];
         } else {
           data[field] = Number(data[field]);
         }
       });
+      if (!data.availableFrom) delete data.availableFrom;
 
-      if (!data.availableFrom) {
-        delete data.availableFrom;
-      }
-
-      // Local development only:
-      // ownerId is entered manually until authentication is integrated.
-      const response = await fetch(
-        `${API_URL}/api/properties`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(data)
-        }
-      );
-
+      // Development only: remove manual ownerId entry when auth is integrated.
+      // Backend must later obtain ownerId from the authenticated user.
+      const response = await fetch(`${API_URL}/api/properties`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
       const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(
-          result.message || "Failed to create property"
-        );
+      if (!response.ok || !result.success || !result.data?.propertyId) {
+        throw new Error(result.message || "Failed to create property");
       }
 
-      setSuccessMessage("Property created successfully!");
+      propertyId = result.data.propertyId;
+      setCreatedPropertyId(propertyId);
+      setSuccessMessage("Property saved. Uploading selected photos...");
+
+      const uploadedImages = [];
+      for (let index = 0; index < selectedImages.length; index++) {
+        const image = selectedImages[index];
+        setUploadProgress(`Uploading ${index + 1} of ${selectedImages.length} images...`);
+
+        const imageFormData = new FormData();
+        imageFormData.append("image", image.file);
+        imageFormData.append("imageType", image.imageType);
+
+        const imageResponse = await fetch(
+          `${API_URL}/api/property-images/${encodeURIComponent(propertyId)}`,
+          { method: "POST", body: imageFormData }
+        );
+        const imageResult = await imageResponse.json();
+        if (!imageResponse.ok || !imageResult.success) {
+          throw new Error(imageResult.message || `Image ${index + 1} upload failed`);
+        }
+        uploadedImages.push({
+          imageId: imageResult.data.imageId,
+          isCoverImage: image.isCoverImage
+        });
+      }
+
+      const coverImage = uploadedImages.find((image) => image.isCoverImage);
+      if (coverImage) {
+        const response = await fetch(
+          `${API_URL}/api/property-images/${encodeURIComponent(propertyId)}/${encodeURIComponent(coverImage.imageId)}/cover`,
+          { method: "PUT" }
+        );
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Failed to set cover image");
+        }
+      }
 
       navigate("/owner/properties", {
-        state: {
-          successMessage: "Property created successfully!"
-        }
+        state: { successMessage: "Property and photos saved successfully!" }
       });
     } catch (error) {
-      setErrorMessage(error.message);
+      if (propertyId) {
+        // Property exists; do not POST it again. Continue image management.
+        navigate(`/owner/properties/${encodeURIComponent(propertyId)}/images`, {
+          state: {
+            successMessage: `Property created, but image upload needs attention: ${error.message}`
+          }
+        });
+      } else {
+        setErrorMessage(error.message);
+      }
     } finally {
       setIsSubmitting(false);
+      setUploadProgress("");
     }
   };
 
@@ -445,6 +568,79 @@ function PropertyForm() {
         </div>
       </div>
 
+      <div className="rooma-form-section">
+        <div className="rooma-form-section-heading">
+          <span className="rooma-form-step sage">05</span>
+          <div>
+            <h2>Property Photos</h2>
+            <p>Add up to 20 photos. Choose one as the cover photo.</p>
+          </div>
+        </div>
+
+        <label className="rooma-photo-upload">
+          <span className="rooma-photo-upload-icon">＋</span>
+          <strong>Select Property Photos</strong>
+          <small>JPG, PNG or WebP — maximum 5 MB each</small>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            onChange={handleImageSelect}
+            disabled={isSubmitting || selectedImages.length >= 20}
+          />
+        </label>
+
+        <p className="rooma-photo-count">{selectedImages.length} / 20 photos selected</p>
+        {imageError && <p className="rooma-form-message error" role="alert">{imageError}</p>}
+
+        <div className="rooma-photo-grid">
+          {selectedImages.map((image) => (
+            <div className="rooma-photo-card" key={image.imageId}>
+              <div className="rooma-photo-preview">
+                <img src={image.previewUrl} alt="Selected property preview" />
+                {image.isCoverImage && (
+                  <span className="rooma-photo-cover-badge">Cover Image</span>
+                )}
+              </div>
+              <div className="rooma-photo-options">
+                <label htmlFor={`imageType-${image.imageId}`}>Photo category</label>
+                <select
+                  id={`imageType-${image.imageId}`}
+                  value={image.imageType}
+                  onChange={(event) => updateImageType(image.imageId, event.target.value)}
+                  disabled={isSubmitting}
+                >
+                  <option value="room">Room</option>
+                  <option value="bathroom">Bathroom</option>
+                  <option value="kitchen">Kitchen</option>
+                  <option value="exterior">Exterior</option>
+                  <option value="entrance">Entrance</option>
+                  <option value="living_area">Living Area</option>
+                  <option value="parking">Parking</option>
+                  <option value="other">Other</option>
+                </select>
+                <div className="rooma-photo-actions">
+                  <button
+                    type="button"
+                    disabled={image.isCoverImage || isSubmitting}
+                    onClick={() => setCoverImage(image.imageId)}
+                  >Set Cover</button>
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => removeImage(image.imageId)}
+                  >Remove</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {uploadProgress && (
+        <p className="rooma-form-message success" role="status">{uploadProgress}</p>
+      )}
+
       {errorMessage && (
         <p className="rooma-form-message error" role="alert">
           {errorMessage}
@@ -469,9 +665,9 @@ function PropertyForm() {
         <button
           type="submit"
           className="rooma-form-save"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !!createdPropertyId}
         >
-          {isSubmitting ? "Creating..." : "Create Property"}
+          {isSubmitting ? "Saving Property & Photos..." : "Create Property"}
         </button>
       </div>
     </form>

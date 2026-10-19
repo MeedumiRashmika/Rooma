@@ -1,0 +1,152 @@
+
+.rooma-owner-page {
+  min-height: 100vh;
+  background: var(--color-background, #F8F7F3);
+  padding: 42px 24px;
+  color: var(--color-text-primary, #2F3432);
+}
+
+.rooma-owner-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.rooma-owner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.rooma-owner-eyebrow {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: #66896C;
+  font-weight: 700;
+}
+
+.rooma-owner-header h1 {
+  margin: 10px 0;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.rooma-owner-header p {
+  color: var(--color-text-secondary, #707873);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.rooma-owner-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 30px;
+}
+
+.rooma-summary-card {
+  padding: 24px;
+  background: white;
+  border: 1px solid var(--color-border, #E7E9E5);
+  border-radius: var(--radius-lg, 20px);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(0,0,0,0.06));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rooma-summary-card span {
+  font-size: 13px;
+  color: var(--color-text-secondary, #707873);
+}
+
+.rooma-summary-card strong {
+  font-size: 29px;
+}
+
+.rooma-property-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+.rooma-empty-state {
+  text-align: center;
+  padding: 70px 20px;
+  background: white;
+  border-radius: var(--radius-card, 24px);
+  border: 1px solid var(--color-border, #E7E9E5);
+}
+
+.rooma-empty-state h2 {
+  margin-bottom: 10px;
+}
+
+.rooma-empty-state p {
+  color: #707873;
+}
+
+.rooma-owner-error {
+  padding: 16px;
+  border-radius: 12px;
+  color: #A14040;
+  background: #FCECEB;
+}
+
+@media (max-width: 1100px) {
+  .rooma-property-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .rooma-owner-page {
+    padding: 24px 14px;
+  }
+
+  .rooma-owner-header h1 {
+    font-size: 25px;
+  }
+
+  .rooma-owner-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .rooma-property-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 800px) {
+  .rooma-property-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .rooma-property-grid {
+    grid-template-columns: 1fr;
+  }
+}@media (max-width: 800px) {
+  .rooma-property-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .rooma-property-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 800px) {
+  .rooma-property-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .rooma-property-grid {
+    grid-template-columns: 1fr;
+  }
+}

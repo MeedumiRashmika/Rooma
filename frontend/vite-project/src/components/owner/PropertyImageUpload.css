@@ -1,0 +1,232 @@
+
+.rooma-image-page {
+  min-height: 100vh;
+  background: var(--color-background, #F8F7F3);
+  padding: 40px 20px;
+  color: var(--color-text-primary, #2F3432);
+}
+
+.rooma-image-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.rooma-image-header {
+  margin-bottom: 28px;
+}
+
+.rooma-image-header span {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: #66896C;
+  font-weight: 700;
+}
+
+.rooma-image-header h1 {
+  font-size: 30px;
+  margin: 12px 0;
+}
+
+.rooma-image-header p {
+  color: var(--color-text-secondary, #707873);
+}
+
+.rooma-image-panel {
+  background: var(--color-surface, #FFFFFF);
+  border: 1px solid var(--color-border, #E7E9E5);
+  padding: 26px;
+  border-radius: var(--radius-card, 24px);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(0,0,0,0.06));
+  margin-bottom: 24px;
+}
+
+.rooma-image-panel h2 {
+  font-size: 20px;
+  margin: 0 0 20px;
+}
+
+.rooma-upload-area {
+  display: block;
+  border: 2px dashed var(--color-primary, #A8C3A0);
+  background: #F7FAF5;
+  border-radius: 18px;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.rooma-upload-area > div {
+  padding: 55px 16px;
+}
+
+.rooma-upload-area strong {
+  display: block;
+}
+
+.rooma-upload-area p {
+  color: #707873;
+  font-size: 13px;
+}
+
+.rooma-upload-symbol {
+  display: block;
+  font-size: 38px;
+  color: #66896C;
+  margin-bottom: 12px;
+}
+
+.rooma-upload-area img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+}
+
+.rooma-upload-area input {
+  display: block;
+  margin: 12px auto;
+  max-width: 95%;
+}
+
+.rooma-upload-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.rooma-upload-controls > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rooma-upload-controls select {
+  padding: 12px;
+  border: 1px solid #E7E9E5;
+  border-radius: 12px;
+  background: white;
+  color: #2F3432;
+}
+
+.rooma-upload-controls button {
+  padding: 13px 24px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-primary, #A8C3A0);
+  color: #203423;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rooma-upload-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rooma-image-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rooma-uploaded-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.rooma-uploaded-card {
+  border: 1px solid #E7E9E5;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.rooma-uploaded-photo {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #EDF3EA;
+}
+
+.rooma-uploaded-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rooma-cover-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #A8C3A0;
+  color: #203423;
+  padding: 7px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rooma-uploaded-details {
+  padding: 14px;
+  text-transform: capitalize;
+}
+
+.rooma-image-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rooma-image-actions button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #E7E9E5;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.rooma-image-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rooma-image-actions .rooma-delete-image {
+  color: #A14040;
+  border-color: #E7B8A2;
+}
+
+.rooma-image-success,
+.rooma-image-error {
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.rooma-image-success {
+  background: #EDF5EB;
+  color: #376B41;
+}
+
+.rooma-image-error {
+  background: #FCECEB;
+  color: #A14040;
+}
+
+@media (max-width: 800px) {
+  .rooma-uploaded-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 550px) {
+  .rooma-uploaded-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rooma-upload-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
