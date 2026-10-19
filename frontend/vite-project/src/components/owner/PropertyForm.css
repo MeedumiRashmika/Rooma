@@ -1,0 +1,211 @@
+
+.rooma-property-form {
+  max-width: 1100px;
+  margin: 0 auto;
+  color: var(--color-text-primary, #2F3432);
+}
+
+.rooma-form-section {
+  background: var(--color-surface, #FFFFFF);
+  border: 1px solid var(--color-border, #E7E9E5);
+  border-radius: var(--radius-card, 24px);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(0,0,0,0.06));
+  padding: 28px;
+  margin-bottom: 24px;
+}
+
+.rooma-form-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.rooma-form-section-heading h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.rooma-form-section-heading p {
+  font-size: 13px;
+  color: var(--color-text-secondary, #707873);
+  margin: 0;
+}
+
+.rooma-form-step {
+  height: 48px;
+  width: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.rooma-form-step.sage {
+  background: #EDF3EA;
+  color: #557D5B;
+}
+
+.rooma-form-step.peach {
+  background: #F9E9E0;
+  color: #8D5845;
+}
+
+.rooma-form-step.lavender {
+  background: #F0EAF6;
+  color: #6D5487;
+}
+
+.rooma-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.rooma-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rooma-field label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rooma-field input,
+.rooma-field select,
+.rooma-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border, #E7E9E5);
+  border-radius: var(--radius-md, 12px);
+  padding: 13px 14px;
+  background: white;
+  color: var(--color-text-primary, #2F3432);
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.rooma-field input:focus,
+.rooma-field select:focus,
+.rooma-field textarea:focus {
+  outline: 2px solid var(--color-primary, #A8C3A0);
+  outline-offset: 1px;
+}
+
+.rooma-field input[aria-invalid="true"],
+.rooma-field textarea[aria-invalid="true"] {
+  border-color: #C76B6B;
+}
+
+.rooma-full-width {
+  grid-column: 1 / -1;
+}
+
+.rooma-field-error {
+  font-size: 12px;
+  color: #B24545;
+}
+
+.rooma-form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.rooma-form-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary, #A8C3A0);
+}
+
+.rooma-form-message {
+  padding: 14px 18px;
+  border-radius: var(--radius-md, 12px);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.rooma-form-message.success {
+  background: #EDF5EB;
+  color: #376B41;
+}
+
+.rooma-form-message.error {
+  background: #FCECEB;
+  color: #A14040;
+}
+
+.rooma-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.rooma-form-cancel,
+.rooma-form-save {
+  padding: 14px 24px;
+  border-radius: var(--radius-md, 12px);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.rooma-form-cancel {
+  background: white;
+  border-color: var(--color-border, #E7E9E5);
+  color: var(--color-text-primary, #2F3432);
+}
+
+.rooma-form-save {
+  background: var(--color-primary, #A8C3A0);
+  color: #203423;
+}
+
+.rooma-form-save:hover {
+  background: #97B692;
+}
+
+.rooma-form-cancel:hover {
+  background: #F3F3F0;
+}
+
+.rooma-form-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 650px) {
+  .rooma-form-section {
+    padding: 20px;
+  }
+
+  .rooma-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rooma-form-section-heading h2 {
+    font-size: 17px;
+  }
+
+  .rooma-form-footer {
+    flex-direction: column-reverse;
+  }
+
+  .rooma-form-cancel,
+  .rooma-form-save {
+    width: 100%;
+  }
+}
