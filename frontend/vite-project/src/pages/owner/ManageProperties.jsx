@@ -8,6 +8,9 @@ const API_URL = "http://localhost:5000";
 
 function ManageProperties() {
   const [properties, setProperties] = useState([]);
+  const [propertyToDelete, setPropertyToDelete] = useState(null);
+const [isDeleting, setIsDeleting] = useState(false);
+const [deleteError, setDeleteError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const location = useLocation();
@@ -48,10 +51,60 @@ function ManageProperties() {
       }
     };
 
+    
+
     loadProperties();
+
+    
 
     return () => controller.abort();
   }, []);
+
+
+const handleDeleteProperty = (property) => {
+  setPropertyToDelete(property);
+  setDeleteError("");
+};
+
+const confirmDeleteProperty = async () => {
+  if (!propertyToDelete || isDeleting) return;
+
+  setIsDeleting(true);
+  setDeleteError("");
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/properties/${encodeURIComponent(
+        propertyToDelete.propertyId
+      )}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "Failed to delete property"
+      );
+    }
+
+    setProperties((previous) =>
+      previous.filter(
+        (property) =>
+          property.propertyId !== propertyToDelete.propertyId
+      )
+    );
+
+    setPropertyToDelete(null);
+  } catch (error) {
+    setDeleteError(error.message || "Unable to delete property.");
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
 
   return (
     <main className="rooma-owner-page">
@@ -141,12 +194,65 @@ function ManageProperties() {
             <div className="rooma-property-grid">
               {properties.map((property) => (
                 <PropertyCard
-                  key={property.propertyId}
-                  property={property}
+                   key={property.propertyId}
+  property={property}
+  onDelete={handleDeleteProperty}
                 />
               ))}
             </div>
           )}
+
+{propertyToDelete && (
+  <div className="rooma-delete-overlay">
+    <div
+      className="rooma-delete-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="rooma-delete-title"
+      aria-describedby="rooma-delete-description"
+    >
+      <div className="rooma-delete-icon">
+        🗑️
+      </div>
+
+      <h2 id="rooma-delete-title">
+        Delete Property?
+      </h2>
+
+      <p id="rooma-delete-description">
+        Are you sure you want to delete
+        <strong> {propertyToDelete.propertyTitle}</strong>?
+        This action cannot be undone.
+      </p>
+
+      {deleteError && (
+        <p className="rooma-delete-error" role="alert">
+          {deleteError}
+        </p>
+      )}
+
+      <div className="rooma-delete-actions">
+        <button
+          type="button"
+          className="rooma-delete-cancel"
+          onClick={() => setPropertyToDelete(null)}
+          disabled={isDeleting}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          className="rooma-delete-confirm"
+          onClick={confirmDeleteProperty}
+          disabled={isDeleting}
+        >
+          {isDeleting ? "Deleting..." : "Delete Property"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       </div>
     </main>
