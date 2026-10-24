@@ -182,15 +182,4 @@
   .rooma-property-actions {
     flex-direction: column;
   }
-
-  .rooma-card-button.danger {
-  background: #FFF1F0;
-  color: #B34848;
-  border: 1px solid #F0CDCB;
-  cursor: pointer;
-}
-
-.rooma-card-button.danger:hover {
-  background: #FBE1DF;
-}
 }
