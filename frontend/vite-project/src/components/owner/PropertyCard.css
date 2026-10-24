@@ -1,0 +1,196 @@
+
+.rooma-property-card {
+  background: var(--color-surface, #FFFFFF);
+  border: 1px solid var(--color-border, #E7E9E5);
+  border-radius: 8px;
+  box-shadow: none; 
+ overflow: hidden;
+  transition: transform 0.2s ease;
+  color: var(--color-text-primary, #2F3432);
+}
+
+.rooma-property-card:hover {
+    transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.09);
+}
+
+.rooma-property-image {
+   width: 100%;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #EDF3EA;
+}
+
+.rooma-property-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rooma-image-placeholder {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #707873;
+}
+
+.rooma-image-placeholder span {
+  font-size: 42px;
+}
+
+.rooma-image-placeholder p {
+  font-size: 13px;
+}
+
+.rooma-property-status {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 7px 13px;
+  border-radius: 30px;
+  background: #FFFFFF;
+  color: #376B41;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.rooma-property-content {
+ padding: 14px 2px;
+}
+
+.rooma-property-type {
+  color: #66896C;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+.rooma-property-content h3 {
+ font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 7px;
+}
+
+.rooma-property-location {
+   font-size: 14px;
+  color: var(--color-text-secondary, #707873);
+  margin: 0 0 8px;
+}
+
+.rooma-property-facilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.rooma-property-facilities span {
+  background: #F0EAF6;
+  color: #6D5487;
+  border-radius: 20px;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+.rooma-property-rating {
+  font-size: 13px;
+  margin: 12px 0;
+}
+
+.rooma-property-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--color-border, #E7E9E5);
+  border-bottom: 1px solid var(--color-border, #E7E9E5);
+  padding: 10px 0;
+  margin: 10px 0;
+}
+
+.rooma-property-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rooma-property-info small {
+  color: #707873;
+  font-size: 11px;
+}
+
+.rooma-property-info strong {
+  font-size: 16px;
+}
+
+.rooma-property-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rooma-card-button {
+  flex: 1;
+  min-width: 100px;
+  padding: 11px;
+  border-radius: var(--radius-md, 12px);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.rooma-card-button.primary {
+  background: var(--color-primary, #A8C3A0);
+  color: #203423;
+}
+
+.rooma-card-button.secondary {
+  background: #F0EAF6;
+  color: #614A7D;
+}
+
+.rooma-card-button.delete {
+  background: white;
+  border-color: #E7B8A2;
+  color: #A2504A;
+}
+
+.rooma-card-button:hover {
+  filter: brightness(0.96);
+}
+
+.rooma-card-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .rooma-property-content h3{
+    padding: 16px;
+  }
+
+  .rooma-property-actions {
+    flex-direction: column;
+  }
+
+  .rooma-card-button.danger {
+  background: #FFF1F0;
+  color: #B34848;
+  border: 1px solid #F0CDCB;
+  cursor: pointer;
+}
+
+.rooma-card-button.danger:hover {
+  background: #FBE1DF;
+}
+}
