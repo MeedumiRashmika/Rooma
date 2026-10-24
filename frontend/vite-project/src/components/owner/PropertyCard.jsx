@@ -1,7 +1,12 @@
-
-import { Link } from "react-router-dom";
-import "./PropertyCard.css";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
+import Button from "../ui/Button";
+import Card from "../ui/Card";
+
+import "./PropertyCard.css";
+
+const API_URL = "http://localhost:5000";
 
 const propertyTypeLabels = {
   boarding_room: "Boarding Room",
@@ -10,8 +15,21 @@ const propertyTypeLabels = {
   house_room: "House Room",
   hostel: "Hostel",
   studio: "Studio",
-  shared_room: "Shared Room"
+  shared_room: "Shared Room",
 };
+
+// Convert image path to a complete URL
+function getImageUrl(imageUrl) {
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return "";
+  }
+
+  try {
+    return new URL(imageUrl, `${API_URL}/`).href;
+  } catch {
+    return "";
+  }
+}
 
 function PropertyCard({ property, onDelete }) {
   const {
@@ -23,66 +41,121 @@ function PropertyCard({ property, onDelete }) {
     city,
     area,
     availableSpaces,
-    keyFacilities,
-    overallRating,
-    reviewCount
   } = property;
 
-  const formattedRent = Number(monthlyRent || 0)
-    .toLocaleString("en-LK");
+  // Cover image state
+  const [coverImageState, setCoverImageState] = useState({
+    propertyId: null,
+    url: "",
+    error: false,
+  });
 
-    
-const [uploadedCoverImage, setUploadedCoverImage] = useState("");
+  const uploadedCoverImage =
+    coverImageState.propertyId === propertyId ? coverImageState.url : "";
 
-useEffect(() => {
-  if (!propertyId) return;
+  const imageError =
+    coverImageState.propertyId === propertyId ? coverImageState.error : false;
 
-  const controller = new AbortController();
+  const formattedRent = Number(monthlyRent || 0).toLocaleString("en-LK");
 
-  const loadCoverImage = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/property-images/${encodeURIComponent(propertyId)}`,
-        { signal: controller.signal }
-      );
+  // ---------------------------------------
+  // Load property cover image
+  // ---------------------------------------
 
-      if (!response.ok) return;
+  useEffect(() => {
+    const controller = new AbortController();
 
-      const result = await response.json();
+    if (!propertyId) {
+      return () => controller.abort();
+    }
 
-      const coverImage = result.data?.find(
-        (image) => image.isCoverImage
-      ) || result.data?.[0];
-
-      if (coverImage) {
-        setUploadedCoverImage(
-          `http://localhost:5000${coverImage.imageUrl}`
+    const loadCoverImage = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/api/property-images/${encodeURIComponent(propertyId)}`,
+          {
+            method: "GET",
+            signal: controller.signal,
+            cache: "no-store",
+          },
         );
-      } else {
-        setUploadedCoverImage("");
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Failed to load property images");
+        }
+
+        const images = Array.isArray(result.data) ? result.data : [];
+
+        console.log(`[Rooma] Property ${propertyId} images:`, images);
+
+        // Find selected cover image
+        // Otherwise use first uploaded image
+        const coverImage =
+          images.find(
+            (image) =>
+              image.isCoverImage === true || image.isCoverImage === "true",
+          ) || images[0];
+
+        const imageUrl = getImageUrl(coverImage?.imageUrl);
+
+        if (!controller.signal.aborted) {
+          setCoverImageState({
+            propertyId,
+            url: imageUrl,
+            error: false,
+          });
+        }
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error(`[Rooma] Cover image error for ${propertyId}:`, error);
+
+          if (!controller.signal.aborted) {
+            setCoverImageState({
+              propertyId,
+              url: "",
+              error: true,
+            });
+          }
+        }
       }
-    } catch (error) {
-      if (error.name !== "AbortError") {
-        console.error("Failed to load cover image", error);
-      }
+    };
+
+    loadCoverImage();
+
+    return () => controller.abort();
+  }, [propertyId]);
+
+  // ---------------------------------------
+  // Delete property
+  // ---------------------------------------
+
+  const handleDeleteClick = () => {
+    if (typeof onDelete === "function") {
+      onDelete(property);
     }
   };
 
-  loadCoverImage();
-
-  return () => controller.abort();
-}, [propertyId]);
-
-
   return (
-    <article className="rooma-property-card">
+    <Card as="article" padding="none" className="rooma-property-card">
+      {/* PROPERTY IMAGE */}
 
       <div className="rooma-property-image">
-        {uploadedCoverImage ? (
+        {uploadedCoverImage && !imageError ? (
           <img
             src={uploadedCoverImage}
-            alt={propertyTitle}
+            alt={propertyTitle || "Property image"}
             loading="lazy"
+            onError={() => {
+              console.error("[Rooma] Image URL failed:", uploadedCoverImage);
+
+              setCoverImageState((previous) => ({
+                ...previous,
+                propertyId,
+                error: true,
+              }));
+            }}
           />
         ) : (
           <div className="rooma-image-placeholder">
@@ -92,82 +165,98 @@ useEffect(() => {
         )}
 
         <span className="rooma-property-status">
-          {propertyStatus?.replaceAll("_", " ")}
+          {String(propertyStatus || "available").replaceAll("_", " ")}
         </span>
       </div>
 
+      {/* COMPACT PROPERTY DETAILS */}
+
       <div className="rooma-property-content">
+        <div className="rooma-property-topline">
+          <span className="rooma-property-type">
+            {propertyTypeLabels[propertyType] || propertyType || "Property"}
+          </span>
 
-        <p className="rooma-property-type">
-          {propertyTypeLabels[propertyType] || propertyType}
-        </p>
+          <span className="rooma-property-inline-status">
+            {String(propertyStatus || "available").replaceAll("_", " ")}
+          </span>
+        </div>
 
-        <h3>{propertyTitle}</h3>
+        <h3>{propertyTitle || "Untitled Property"}</h3>
 
         <p className="rooma-property-location">
-          📍 {area}, {city}
+          📍{" "}
+          {[area, city].filter(Boolean).join(", ") || "Location not provided"}
         </p>
 
-        <div className="rooma-property-facilities">
-          {Array.isArray(keyFacilities) &&
-            keyFacilities.map((facility, index) => (
-              <span key={index}>{facility}</span>
-            ))
-          }
-        </div>
-
-        {overallRating != null && (
-          <p className="rooma-property-rating">
-            ⭐ {overallRating}
-            {reviewCount != null && ` (${reviewCount})`}
-          </p>
-        )}
-
-        <div className="rooma-property-info">
+        <div className="rooma-property-compact-info">
           <div>
-            <small>Monthly Rent</small>
             <strong>Rs. {formattedRent}</strong>
+            <span>/month</span>
           </div>
 
-          <div>
-            <small>Available Spaces</small>
-            <strong>{availableSpaces ?? "N/A"}</strong>
-          </div>
+          <small>{availableSpaces ?? "N/A"} spaces available</small>
         </div>
+
+        {/* SHARED UI BUTTONS */}
 
         <div className="rooma-property-actions">
-          <Link
+          <Button
+            as={Link}
             to={`/owner/properties/${propertyId}/edit`}
-            className="rooma-card-button primary"
+            variant="primary"
+            size="small"
           >
-            Edit Property
-          </Link>
+            Edit
+          </Button>
 
-          <Link
+          <Button
+            as={Link}
+            to={`/owner/properties/${propertyId}/images`}
+            variant="secondary"
+            size="small"
+          >
+            Images
+          </Button>
+
+          <Button
+            as={Link}
             to={`/owner/properties/${propertyId}/rules`}
-            className="rooma-card-button secondary"
+            variant="secondary"
+            size="small"
           >
-            Manage Rules
-          </Link>
-          <Link
-  to={`/owner/properties/${propertyId}/images`}
-  className="rooma-card-button secondary"
->
-  Manage Images
-</Link>
+            Rules
+          </Button>
+          <Button
+            as={Link}
+            to={`/owner/properties/${propertyId}/details`}
+            variant="secondary"
+            size="small"
+          >
+            Details
+          </Button>
 
-          <button
-             type="button"
-  className="rooma-card-button delete"
-  disabled={!onDelete}
-  onClick={() => onDelete?.(propertyId)}
+          <Button
+            type="button"
+            variant="danger"
+            size="small"
+            onClick={handleDeleteClick}
+            disabled={typeof onDelete !== "function"}
           >
             Delete
-          </button>
-        </div>
+          </Button>
 
+          <Button
+            as={Link}
+            to={`/owner/properties/${propertyId}/availability`}
+            variant="secondary"
+            size="small"
+          >
+            Availability
+          </Button>
+        </div>
       </div>
-    </article>
+    </Card>
   );
 }
 

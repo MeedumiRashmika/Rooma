@@ -229,4 +229,107 @@
     flex-direction: column;
     align-items: stretch;
   }
+
+  
+/* Shared UI integration */
+
+.rooma-image-page .rooma-image-panel {
+  margin-bottom: 24px;
+}
+
+.rooma-image-page .rooma-uploaded-card {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.rooma-image-page .rooma-uploaded-photo {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  position: relative;
+}
+
+.rooma-image-page .rooma-uploaded-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rooma-image-page .rooma-image-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rooma-image-page .rooma-image-actions .rooma-ui-button {
+  width: 100%;
+  min-width: 0;
+}
+
+.rooma-image-clear {
+  margin-top: 14px;
+}
+
+/* Delete confirmation modal */
+
+.rooma-image-delete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(47, 58, 63, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+.rooma-image-page .rooma-image-delete-modal {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  border-radius: 24px;
+  box-shadow: var(
+    --rooma-shadow-lg,
+    0 20px 50px rgba(111, 175, 200, 0.16)
+  );
+}
+
+.rooma-image-delete-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #FBEDEF;
+  font-size: 28px;
+}
+
+.rooma-image-delete-modal h2 {
+  margin: 0 0 12px;
+  font-size: 23px;
+  color: var(--rooma-text-primary, #2F3A3F);
+}
+
+.rooma-image-delete-modal p {
+  margin: 0 0 24px;
+  color: var(--rooma-text-secondary, #6F7C82);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.rooma-image-delete-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .rooma-image-page .rooma-image-delete-modal {
+    padding: 22px;
+  }
+}
+
 }

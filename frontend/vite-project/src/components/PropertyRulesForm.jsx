@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import "./PropertyRulesForm.css";
+import Button from "./ui/Button";
 
 const API_URL = "http://localhost:5000";
 
@@ -361,13 +362,13 @@ export default function PropertyRulesForm({ propertyId }) {
         )}
 
         <div className="rooma-form-actions">
-          <button
-            type="submit"
-            className="rooma-save-button"
-            disabled={isSubmitting || isLoading || !propertyId}
-          >
-            {isSubmitting ? "Saving..." : "Save Property Rules"}
-          </button>
+         <Button
+  type="submit"
+  variant="primary"
+  disabled={isSubmitting || isLoading || !propertyId}
+>
+  {isSubmitting ? "Saving..." : "Save Property Rules"}
+</Button>
         </div>
       </form>
     </div>

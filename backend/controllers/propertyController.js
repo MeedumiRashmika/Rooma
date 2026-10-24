@@ -123,65 +123,26 @@ const updateProperty = async (req, res) => {
 
     // Only allow defined property fields to be updated.
     const allowedFields = [
-      "propertyTitle",
-      "propertyDescription",
-      "propertyType",
-      "propertyStatus",
-      "address",
-      "city",
-      "area",
-      "latitude",
-      "longitude",
-      "nearbyLandmark",
-      "monthlyRent",
-      "rentPerPerson",
-      "depositAmount",
-      "advanceAmount",
-      "isNegotiable",
-      "availableFrom",
-      "maximumOccupants",
-      "currentOccupants",
-      "availableSpaces",
-      "hasSofa",
-      
-  // Utilities
-  "electricityType",
-  "waterType",
-  "wifiType",
-  "electricityCharge",
-  "waterCharge",
-  "wifiCharge",
-  "cleaningCharge",
-  "maintenanceCharge",
-  "parkingCharge",
-
-  // Internet
-  "hasWifi",
-  "internetType",
-  "internetSpeed",
-
-  // Parking
-  "hasParking",
-  "carParkingSpaces",
-  "bikeParkingSpaces",
-  "bicycleParkingSpaces",
-
-  // Laundry
-  "hasWashingMachine",
-  "hasWashingArea",
-  "hasDryingArea",
-  "hasIroningFacility",
-
-  // Security
-  "hasCCTV",
-  "hasSecurityGuard",
-  "hasGate",
-  "hasKeyAccess",
-  "hasSeparateEntrance",
-  "hasFireExtinguisher",
-  "hasEmergencyExit"
-
-    ];
+  "propertyTitle",
+  "propertyDescription",
+  "propertyType",
+  "propertyStatus",
+  "address",
+  "city",
+  "area",
+  "latitude",
+  "longitude",
+  "nearbyLandmark",
+  "monthlyRent",
+  "rentPerPerson",
+  "depositAmount",
+  "advanceAmount",
+  "isNegotiable",
+  "availableFrom",
+  "maximumOccupants",
+  "currentOccupants",
+  "availableSpaces"
+];
 
     const updates = {};
 

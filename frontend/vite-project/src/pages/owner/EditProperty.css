@@ -1,0 +1,233 @@
+
+.rooma-edit-page {
+  min-height: 100vh;
+  padding: 30px 24px 70px;
+  background: var(--rooma-background, #F7FBFD);
+  color: var(--rooma-text-primary, #2F3A3F);
+}
+
+.rooma-edit-page * {
+  box-sizing: border-box;
+}
+
+.rooma-edit-container {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.rooma-edit-navigation {
+  margin-bottom: 22px;
+}
+
+.rooma-edit-header {
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  border-radius: 24px;
+  background: linear-gradient(
+    115deg,
+    #EAF6FA,
+    #E9E8F6,
+    #F9EEE8
+  );
+}
+
+.rooma-edit-eyebrow {
+  color: var(--rooma-primary-dark, #6FAFC8);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
+.rooma-edit-header h1 {
+  margin: 10px 0;
+  font-size: clamp(26px, 3vw, 34px);
+  letter-spacing: -0.6px;
+}
+
+.rooma-edit-header p {
+  margin: 0;
+  color: var(--rooma-text-secondary, #6F7C82);
+  font-size: 14px;
+}
+
+.rooma-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rooma-edit-section.rooma-ui-card {
+  border-radius: 22px;
+}
+
+.rooma-edit-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.rooma-edit-step {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--rooma-primary-soft, #DCEFF5);
+  color: #548DA6;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rooma-edit-section h2 {
+  margin: 0 0 5px;
+  font-size: 18px;
+  color: var(--rooma-text-primary, #2F3A3F);
+}
+
+.rooma-edit-section p {
+  margin: 0;
+  color: var(--rooma-text-secondary, #6F7C82);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.rooma-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.rooma-edit-full {
+  grid-column: 1 / -1;
+}
+
+.rooma-edit-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 8px;
+}
+
+.rooma-edit-field label {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--rooma-text-primary, #2F3A3F);
+}
+
+.rooma-edit-field input,
+.rooma-edit-field select,
+.rooma-edit-field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1px solid var(--rooma-border, #DDEBF0);
+  border-radius: 12px;
+  outline: none;
+  background: var(--rooma-surface, #FFFFFF);
+  color: var(--rooma-text-primary, #2F3A3F);
+  font: inherit;
+  font-size: 13px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.rooma-edit-field textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.rooma-edit-field input:focus,
+.rooma-edit-field select:focus,
+.rooma-edit-field textarea:focus {
+  border-color: var(--rooma-primary-dark, #6FAFC8);
+  box-shadow: 0 0 0 3px rgba(173, 216, 230, 0.22);
+}
+
+.rooma-edit-field input:disabled {
+  background: var(--rooma-primary-very-soft, #F2F9FC);
+  color: var(--rooma-text-secondary, #6F7C82);
+  cursor: not-allowed;
+}
+
+.rooma-edit-field [aria-invalid="true"] {
+  border-color: var(--rooma-error, #C56A72);
+}
+
+.rooma-edit-field-error {
+  color: var(--rooma-error, #C56A72);
+  font-size: 11px;
+}
+
+.rooma-edit-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.rooma-edit-checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--rooma-primary-dark, #6FAFC8);
+}
+
+.rooma-edit-related.rooma-ui-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.rooma-edit-related-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.rooma-edit-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.rooma-edit-error {
+  padding: 14px 18px;
+  border: 1px solid #F1D8DC;
+  border-radius: 12px;
+  background: #FBEDEF;
+  color: var(--rooma-error, #C56A72);
+  font-size: 13px;
+}
+
+@media (max-width: 650px) {
+  .rooma-edit-page {
+    padding: 20px 14px 50px;
+  }
+
+  .rooma-edit-header {
+    padding: 24px;
+  }
+
+  .rooma-edit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rooma-edit-full {
+    grid-column: auto;
+  }
+
+  .rooma-edit-footer {
+    flex-direction: column-reverse;
+  }
+
+  .rooma-edit-footer .rooma-ui-button {
+    width: 100%;
+  }
+}
