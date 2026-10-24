@@ -160,7 +160,7 @@ useEffect(() => {
              type="button"
   className="rooma-card-button delete"
   disabled={!onDelete}
-  onClick={() => onDelete?.(propertyId)}
+  onClick={() => onDelete(property)}
           >
             Delete
           </button>
