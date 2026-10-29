@@ -238,10 +238,9 @@ function PropertyCard({ property, onDelete }) {
 
           <Button
             type="button"
-            variant="danger"
-            size="small"
+            className="rooma-card-button delete"
+            disabled={!onDelete}
             onClick={handleDeleteClick}
-            disabled={typeof onDelete !== "function"}
           >
             Delete
           </Button>

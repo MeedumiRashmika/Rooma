@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -17,16 +18,16 @@ function ManageProperties() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [successToast, setSuccessToast] = useState(
-    () => location.state?.successMessage || "",
-  );
-
   const [propertyToDelete, setPropertyToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
+  const [successToast, setSuccessToast] = useState(
+    () => location.state?.successMessage || ""
+  );
+
   // ----------------------------------
-  // SHOW SUCCESS MESSAGE ONCE
+  // SUCCESS MESSAGE FROM OTHER PAGES
   // ----------------------------------
 
   useEffect(() => {
@@ -34,24 +35,31 @@ function ManageProperties() {
 
     if (!message) return;
 
-    // Remove successMessage from browser history,
-    // so it won't reappear on page refresh/back.
-    const remainingState = { ...location.state };
-    delete remainingState.successMessage;
+    const timer = setTimeout(() => {
+      setSuccessToast(message);
 
-    navigate(location.pathname + location.search + location.hash, {
-      replace: true,
-      state: remainingState,
-    });
+      const remainingState = { ...location.state };
+      delete remainingState.successMessage;
+
+      navigate(
+        location.pathname + location.search + location.hash,
+        {
+          replace: true,
+          state: remainingState
+        }
+      );
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [
     location.state,
     location.pathname,
     location.search,
     location.hash,
-    navigate,
+    navigate
   ]);
 
-  // Auto-hide success message after 5 seconds
+  // Auto-hide toast after 5 seconds
   useEffect(() => {
     if (!successToast) return;
 
@@ -74,22 +82,31 @@ function ManageProperties() {
       setErrorMessage("");
 
       try {
-        const response = await fetch(`${API_URL}/api/properties`, {
-          signal: controller.signal,
-        });
+        const response = await fetch(
+          `${API_URL}/api/properties`,
+          {
+            signal: controller.signal
+          }
+        );
 
         const result = await response.json();
 
         if (!response.ok || !result.success) {
-          throw new Error(result.message || "Failed to load properties");
+          throw new Error(
+            result.message || "Failed to load properties"
+          );
         }
 
         if (!controller.signal.aborted) {
-          setProperties(Array.isArray(result.data) ? result.data : []);
+          setProperties(
+            Array.isArray(result.data) ? result.data : []
+          );
         }
       } catch (error) {
         if (error.name !== "AbortError") {
-          setErrorMessage(error.message || "Unable to load properties");
+          setErrorMessage(
+            error.message || "Unable to load properties"
+          );
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -104,68 +121,95 @@ function ManageProperties() {
   }, []);
 
   // ----------------------------------
-  // STATISTICS
+  // PROPERTY STATISTICS
   // ----------------------------------
 
   const totalProperties = properties.length;
 
   const availableProperties = properties.filter(
-    (property) => property.propertyStatus === "available",
+    (property) => property.propertyStatus === "available"
   ).length;
 
   const occupiedProperties = properties.filter(
-    (property) => property.propertyStatus === "occupied",
+    (property) => property.propertyStatus === "occupied"
   ).length;
 
   // ----------------------------------
-  // DELETE PROPERTY
+  // OPEN DELETE CONFIRMATION
   // ----------------------------------
 
   const handleDeleteProperty = (property) => {
-    setDeleteError("");
+    if (!property?.propertyId) return;
+
     setPropertyToDelete(property);
+    setDeleteError("");
+    setSuccessToast("");
   };
+
+  // ----------------------------------
+  // CONFIRM PROPERTY DELETE
+  // ----------------------------------
 
   const confirmDeleteProperty = async () => {
     if (!propertyToDelete || isDeleting) return;
+
+    const propertyId = propertyToDelete.propertyId;
 
     setIsDeleting(true);
     setDeleteError("");
 
     try {
       const response = await fetch(
-        `${API_URL}/api/properties/${encodeURIComponent(
-          propertyToDelete.propertyId,
-        )}`,
+        `${API_URL}/api/properties/${encodeURIComponent(propertyId)}`,
         {
-          method: "DELETE",
-        },
+          method: "DELETE"
+        }
       );
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to delete property");
+        throw new Error(
+          result.message || "Failed to delete property"
+        );
       }
 
       setProperties((previous) =>
         previous.filter(
-          (property) => property.propertyId !== propertyToDelete.propertyId,
-        ),
+          (property) => property.propertyId !== propertyId
+        )
       );
 
       setPropertyToDelete(null);
       setSuccessToast("Property deleted successfully!");
     } catch (error) {
-      setDeleteError(error.message || "Unable to delete property");
+      setDeleteError(
+        error.message || "Unable to delete property."
+      );
     } finally {
       setIsDeleting(false);
     }
   };
 
+  // ----------------------------------
+  // CANCEL DELETE
+  // ----------------------------------
+
+  const cancelDeleteProperty = () => {
+    if (isDeleting) return;
+
+    setPropertyToDelete(null);
+    setDeleteError("");
+  };
+
+  // ----------------------------------
+  // UI
+  // ----------------------------------
+
   return (
     <main className="rooma-owner-page">
       <div className="rooma-owner-container">
+
         {/* HEADER */}
 
         <header className="rooma-owner-header">
@@ -176,10 +220,17 @@ function ManageProperties() {
 
             <h1>Manage Properties</h1>
 
-            <p>View property listings and manage accommodation information.</p>
+            <p>
+              View property listings and manage
+              accommodation information.
+            </p>
           </div>
 
-          <Button as={Link} to="/owner/properties/new" variant="primary">
+          <Button
+            as={Link}
+            to="/owner/properties/new"
+            variant="primary"
+          >
             + Add New Property
           </Button>
         </header>
@@ -187,8 +238,16 @@ function ManageProperties() {
         {/* SUCCESS TOAST */}
 
         {successToast && (
-          <div className="rooma-owner-toast" role="status">
-            <span className="rooma-owner-toast-icon">✓</span>
+          <div
+            className="rooma-owner-toast"
+            role="status"
+          >
+            <span
+              className="rooma-owner-toast-icon"
+              aria-hidden="true"
+            >
+              ✓
+            </span>
 
             <span>{successToast}</span>
 
@@ -206,17 +265,26 @@ function ManageProperties() {
         {/* COMPACT STATISTICS */}
 
         <div className="rooma-owner-summary">
-          <Card className="rooma-summary-card rooma-stat-total" padding="none">
+
+          <Card
+            className="rooma-summary-card rooma-stat-total"
+            padding="none"
+          >
             <div className="rooma-stat-content">
               <div className="rooma-stat-heading">
                 <span>Total Listings</span>
 
-                <span className="rooma-stat-icon" aria-hidden="true">
+                <span
+                  className="rooma-stat-icon"
+                  aria-hidden="true"
+                >
                   ⌂
                 </span>
               </div>
 
-              <strong>{isLoading ? "—" : totalProperties}</strong>
+              <strong>
+                {isLoading ? "—" : totalProperties}
+              </strong>
 
               <small>All property listings</small>
             </div>
@@ -230,12 +298,17 @@ function ManageProperties() {
               <div className="rooma-stat-heading">
                 <span>Available</span>
 
-                <span className="rooma-stat-icon" aria-hidden="true">
+                <span
+                  className="rooma-stat-icon"
+                  aria-hidden="true"
+                >
                   ✓
                 </span>
               </div>
 
-              <strong>{isLoading ? "—" : availableProperties}</strong>
+              <strong>
+                {isLoading ? "—" : availableProperties}
+              </strong>
 
               <small>Ready for residents</small>
             </div>
@@ -249,108 +322,147 @@ function ManageProperties() {
               <div className="rooma-stat-heading">
                 <span>Occupied</span>
 
-                <span className="rooma-stat-icon" aria-hidden="true">
+                <span
+                  className="rooma-stat-icon"
+                  aria-hidden="true"
+                >
                   ▣
                 </span>
               </div>
 
-              <strong>{isLoading ? "—" : occupiedProperties}</strong>
+              <strong>
+                {isLoading ? "—" : occupiedProperties}
+              </strong>
 
               <small>Currently occupied</small>
             </div>
           </Card>
+
         </div>
 
         {/* LOADING */}
 
-        {isLoading && <p>Loading properties...</p>}
+        {isLoading && (
+          <p>Loading properties...</p>
+        )}
 
         {/* ERROR */}
 
         {errorMessage && (
-          <p className="rooma-owner-error" role="alert">
+          <p
+            className="rooma-owner-error"
+            role="alert"
+          >
             {errorMessage}
           </p>
         )}
 
         {/* EMPTY STATE */}
 
-        {!isLoading && !errorMessage && properties.length === 0 && (
-          <Card className="rooma-empty-state" padding="large">
-            <h2>No properties found</h2>
+        {!isLoading &&
+          !errorMessage &&
+          properties.length === 0 && (
+            <Card
+              className="rooma-empty-state"
+              padding="large"
+            >
+              <h2>No properties found</h2>
 
-            <p>Create a property listing to get started.</p>
+              <p>
+                Create a property listing to get started.
+              </p>
 
-            <Button as={Link} to="/owner/properties/new" variant="primary">
-              Add Your First Property
-            </Button>
-          </Card>
-        )}
+              <Button
+                as={Link}
+                to="/owner/properties/new"
+                variant="primary"
+              >
+                Add Your First Property
+              </Button>
+            </Card>
+          )}
 
         {/* PROPERTY LIST */}
 
-        {!isLoading && !errorMessage && properties.length > 0 && (
-          <div className="rooma-property-grid">
-            {properties.map((property) => (
-              <PropertyCard
-                key={property.propertyId}
-                property={property}
-                onDelete={handleDeleteProperty}
-              />
-            ))}
-          </div>
-        )}
+        {!isLoading &&
+          !errorMessage &&
+          properties.length > 0 && (
+            <div className="rooma-property-grid">
+              {properties.map((property) => (
+                <PropertyCard
+                  key={property.propertyId}
+                  property={property}
+                  onDelete={handleDeleteProperty}
+                />
+              ))}
+            </div>
+          )}
 
-        {/* DELETE CONFIRMATION */}
+        {/* DELETE CONFIRMATION MODAL */}
 
         {propertyToDelete && (
           <div className="rooma-delete-overlay">
             <Card
               className="rooma-delete-modal"
               padding="large"
-              role="alertdialog"
-              aria-modal="true"
-              aria-labelledby="rooma-delete-title"
-              aria-describedby="rooma-delete-description"
             >
-              <div className="rooma-delete-icon">🗑️</div>
+              <div
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="rooma-delete-title"
+                aria-describedby="rooma-delete-description"
+              >
+                <div className="rooma-delete-icon">
+                  🗑️
+                </div>
 
-              <h2 id="rooma-delete-title">Delete Property?</h2>
+                <h2 id="rooma-delete-title">
+                  Delete Property?
+                </h2>
 
-              <p id="rooma-delete-description">
-                Are you sure you want to delete{" "}
-                <strong>{propertyToDelete.propertyTitle}</strong>? This action
-                cannot be undone.
-              </p>
-
-              {deleteError && (
-                <p className="rooma-delete-error" role="alert">
-                  {deleteError}
+                <p id="rooma-delete-description">
+                  Are you sure you want to delete{" "}
+                  <strong>
+                    {propertyToDelete.propertyTitle}
+                  </strong>
+                  ? This action cannot be undone.
                 </p>
-              )}
 
-              <div className="rooma-delete-actions">
-                <Button
-                  variant="secondary"
-                  fullWidth
-                  disabled={isDeleting}
-                  onClick={() => setPropertyToDelete(null)}
-                >
-                  Cancel
-                </Button>
+                {deleteError && (
+                  <p
+                    className="rooma-delete-error"
+                    role="alert"
+                  >
+                    {deleteError}
+                  </p>
+                )}
 
-                <Button
-                  variant="danger"
-                  fullWidth
-                  disabled={isDeleting}
-                  onClick={confirmDeleteProperty}
-                >
-                  {isDeleting ? "Deleting..." : "Delete Property"}
-                </Button>
+                <div className="rooma-delete-actions">
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    disabled={isDeleting}
+                    onClick={cancelDeleteProperty}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    variant="danger"
+                    fullWidth
+                    disabled={isDeleting}
+                    onClick={confirmDeleteProperty}
+                  >
+                    {isDeleting
+                      ? "Deleting..."
+                      : "Delete Property"}
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>
         )}
+
       </div>
     </main>
   );
