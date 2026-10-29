@@ -1,0 +1,48 @@
+
+/* ========================================
+   ROOMA - MANAGE PROPERTY IMAGES PAGE
+   ======================================== */
+
+.rooma-manage-images-page {
+  min-height: 100vh;
+  background: var(
+    --rooma-background,
+    #F7FBFD
+  );
+  color: var(
+    --rooma-text-primary,
+    #2F3A3F
+  );
+}
+
+.rooma-manage-images-container {
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Back navigation */
+
+.rooma-manage-images-navigation {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 24px 0;
+}
+
+.rooma-manage-images-navigation .rooma-ui-button {
+  width: fit-content;
+}
+
+/* Avoid duplicate backgrounds */
+
+.rooma-manage-images-page .rooma-image-page {
+  min-height: auto;
+  background: transparent;
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+  .rooma-manage-images-navigation {
+    padding: 20px 14px 0;
+  }
+}

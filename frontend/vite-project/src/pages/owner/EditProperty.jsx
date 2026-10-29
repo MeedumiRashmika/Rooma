@@ -1,10 +1,36 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import "../../components/owner/PropertyForm.css";
-import "./OwnerDashboard.css";
+
+import Button from "../../components/ui/Button";
+import Card from "../../components/ui/Card";
+
+import "./EditProperty.css";
 
 const API_URL = "http://localhost:5000";
+
+const initialForm = {
+  ownerId: "",
+  propertyTitle: "",
+  propertyDescription: "",
+  propertyType: "boarding_room",
+  propertyStatus: "available",
+  address: "",
+  city: "",
+  area: "",
+  latitude: "",
+  longitude: "",
+  nearbyLandmark: "",
+  monthlyRent: "",
+  rentPerPerson: "",
+  depositAmount: "",
+  advanceAmount: "",
+  isNegotiable: false,
+  availableFrom: "",
+  maximumOccupants: "",
+  currentOccupants: "0",
+  availableSpaces: ""
+};
 
 const propertyTypes = [
   ["boarding_room", "Boarding Room"],
@@ -36,44 +62,33 @@ const numberFields = [
   "availableSpaces"
 ];
 
-const initialFormData = {
-  propertyTitle: "",
-  propertyDescription: "",
-  propertyType: "boarding_room",
-  propertyStatus: "available",
-  address: "",
-  city: "",
-  area: "",
-  latitude: "",
-  longitude: "",
-  nearbyLandmark: "",
-  monthlyRent: "",
-  rentPerPerson: "",
-  depositAmount: "",
-  advanceAmount: "",
-  isNegotiable: false,
-  availableFrom: "",
-  maximumOccupants: "",
-  currentOccupants: "",
-  availableSpaces: ""
-};
-
 function EditProperty() {
   const { propertyId } = useParams();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState(initialFormData);
-  const [formErrors, setFormErrors] = useState({});
+  const [formData, setFormData] = useState(initialForm);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  // ----------------------------------
+  // Load existing property
+  // ----------------------------------
 
   useEffect(() => {
     const controller = new AbortController();
 
     const loadProperty = async () => {
+      if (!propertyId) {
+        setLoadError("Property ID is missing.");
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
+      setLoadError("");
 
       try {
         const response = await fetch(
@@ -85,33 +100,43 @@ function EditProperty() {
 
         if (!response.ok || !result.success) {
           throw new Error(
-            result.message || "Failed to load property"
+            result.message || "Failed to load property."
           );
         }
 
         const property = result.data;
 
-        const loadedData = { ...initialFormData };
+        if (!property) {
+          throw new Error("Property not found.");
+        }
 
-        Object.keys(initialFormData).forEach((name) => {
-          if (
-            property[name] !== undefined &&
-            property[name] !== null
-          ) {
-            loadedData[name] = property[name];
-          }
-        });
-
-        loadedData.availableFrom = property.availableFrom
+        // Format saved date for <input type="date">
+        const savedDate = property.availableFrom
           ? String(property.availableFrom).slice(0, 10)
           : "";
 
         if (!controller.signal.aborted) {
-          setFormData(loadedData);
+          setFormData({
+            ...initialForm,
+            ...property,
+            availableFrom: savedDate,
+            latitude: property.latitude ?? "",
+            longitude: property.longitude ?? "",
+            monthlyRent: property.monthlyRent ?? "",
+            rentPerPerson: property.rentPerPerson ?? "",
+            depositAmount: property.depositAmount ?? "",
+            advanceAmount: property.advanceAmount ?? "",
+            maximumOccupants: property.maximumOccupants ?? "",
+            currentOccupants: property.currentOccupants ?? "0",
+            availableSpaces: property.availableSpaces ?? "",
+            isNegotiable: Boolean(property.isNegotiable)
+          });
         }
       } catch (error) {
         if (error.name !== "AbortError") {
-          setErrorMessage(error.message);
+          setLoadError(
+            error.message || "Unable to load property."
+          );
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -125,13 +150,17 @@ function EditProperty() {
     return () => controller.abort();
   }, [propertyId]);
 
+  // ----------------------------------
+  // Update input state
+  // ----------------------------------
+
   const updateField = (name, value) => {
     setFormData((previous) => ({
       ...previous,
       [name]: value
     }));
 
-    setFormErrors((previous) => ({
+    setFieldErrors((previous) => ({
       ...previous,
       [name]: ""
     }));
@@ -139,81 +168,88 @@ function EditProperty() {
     setErrorMessage("");
   };
 
+  // ----------------------------------
+  // Validate edited details
+  // ----------------------------------
+
   const validateForm = () => {
     const errors = {};
 
-    const requiredFields = [
+    const required = [
+      "ownerId",
       "propertyTitle",
       "propertyDescription",
-      "propertyType",
       "address",
       "city",
       "area",
       "monthlyRent"
     ];
 
-    requiredFields.forEach((name) => {
+    required.forEach((name) => {
       if (!String(formData[name] ?? "").trim()) {
-        errors[name] = "This field is required";
+        errors[name] = "This field is required.";
       }
     });
 
     numberFields.forEach((name) => {
       const value = formData[name];
 
-      if (value === "" || value === null) return;
+      if (value === "" || value == null) return;
 
-      if (!Number.isFinite(Number(value))) {
-        errors[name] = "Enter a valid number";
+      const number = Number(value);
+
+      if (!Number.isFinite(number)) {
+        errors[name] = "Enter a valid number.";
       } else if (
-        name !== "latitude" &&
-        name !== "longitude" &&
-        Number(value) < 0
+        !["latitude", "longitude"].includes(name) &&
+        number < 0
       ) {
-        errors[name] = "Value cannot be negative";
+        errors[name] = "Value cannot be negative.";
       }
     });
 
     if (
       formData.latitude !== "" &&
       (Number(formData.latitude) < -90 ||
-       Number(formData.latitude) > 90)
+        Number(formData.latitude) > 90)
     ) {
-      errors.latitude = "Invalid latitude";
+      errors.latitude = "Latitude must be -90 to 90.";
     }
 
     if (
       formData.longitude !== "" &&
       (Number(formData.longitude) < -180 ||
-       Number(formData.longitude) > 180)
+        Number(formData.longitude) > 180)
     ) {
-      errors.longitude = "Invalid longitude";
+      errors.longitude = "Longitude must be -180 to 180.";
     }
-
-    ["maximumOccupants", "currentOccupants", "availableSpaces"]
-      .forEach((name) => {
-        if (
-          formData[name] !== "" &&
-          !Number.isInteger(Number(formData[name]))
-        ) {
-          errors[name] = "Enter a whole number";
-        }
-      });
 
     if (
       formData.maximumOccupants !== "" &&
       Number(formData.maximumOccupants) < 1
     ) {
-      errors.maximumOccupants = "Minimum 1 occupant";
+      errors.maximumOccupants = "Must be at least 1.";
     }
+
+    ["maximumOccupants", "currentOccupants", "availableSpaces"]
+      .forEach((name) => {
+        const value = formData[name];
+
+        if (
+          value !== "" &&
+          !Number.isInteger(Number(value))
+        ) {
+          errors[name] = "Enter a whole number.";
+        }
+      });
 
     if (
       formData.maximumOccupants !== "" &&
-      formData.currentOccupants !== "" &&
       Number(formData.currentOccupants) >
         Number(formData.maximumOccupants)
     ) {
-      errors.currentOccupants = "Exceeds maximum occupants";
+      errors.currentOccupants =
+        "Current occupants exceed maximum occupants.";
     }
 
     if (
@@ -221,37 +257,71 @@ function EditProperty() {
       formData.maximumOccupants !== "" &&
       Number(formData.availableSpaces) >
         Number(formData.maximumOccupants) -
-        Number(formData.currentOccupants || 0)
+          Number(formData.currentOccupants)
     ) {
-      errors.availableSpaces = "Exceeds remaining capacity";
+      errors.availableSpaces =
+        "Available spaces exceed remaining capacity.";
     }
 
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      setErrorMessage(
+        "Please correct the highlighted fields."
+      );
+
+      return false;
+    }
+
+    return true;
   };
+
+  // ----------------------------------
+  // Save existing property
+  // ----------------------------------
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!validateForm()) return;
+    if (isLoading || isSaving || !validateForm()) {
+      return;
+    }
 
-    setIsSubmitting(true);
+    setIsSaving(true);
     setErrorMessage("");
-    setSuccessMessage("");
 
     try {
       const data = { ...formData };
 
+      // Never overwrite the property's identity.
+      delete data.propertyId;
+      delete data._id;
+      delete data.__v;
+      delete data.createdAt;
+      delete data.updatedAt;
+
       numberFields.forEach((name) => {
-        if (data[name] === "") {
-          delete data[name];
+        if (data[name] === "" || data[name] == null) {
+          // Optional numeric fields are cleared.
+          if (
+            [
+              "latitude",
+              "longitude",
+              "rentPerPerson",
+              "depositAmount",
+              "advanceAmount",
+              "availableSpaces"
+            ].includes(name)
+          ) {
+            data[name] = null;
+          }
         } else {
           data[name] = Number(data[name]);
         }
       });
 
       if (!data.availableFrom) {
-        delete data.availableFrom;
+        data.availableFrom = null;
       }
 
       const response = await fetch(
@@ -269,11 +339,9 @@ function EditProperty() {
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.message || "Failed to update property"
+          result.message || "Failed to update property."
         );
       }
-
-      setSuccessMessage("Property updated successfully!");
 
       navigate("/owner/properties", {
         state: {
@@ -281,285 +349,400 @@ function EditProperty() {
         }
       });
     } catch (error) {
-      setErrorMessage(error.message);
+      setErrorMessage(
+        error.message || "Unable to save changes."
+      );
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
 
-  const inputField = (name, label, type = "text", options = {}) => (
-    <div className="rooma-field" key={name}>
-      <label htmlFor={name}>{label}</label>
+  // ----------------------------------
+  // Reusable form field
+  // ----------------------------------
+
+  const renderInput = (
+    name,
+    label,
+    type = "text",
+    options = {}
+  ) => (
+    <div className="rooma-edit-field" key={name}>
+      <label htmlFor={`edit-${name}`}>
+        {label}
+      </label>
 
       <input
-        id={name}
-        name={name}
+        id={`edit-${name}`}
         type={type}
+        value={formData[name] ?? ""}
+        placeholder={options.placeholder || ""}
         min={options.min}
         max={options.max}
         step={options.step}
-        value={formData[name] ?? ""}
         onChange={(event) =>
           updateField(name, event.target.value)
         }
-        aria-invalid={!!formErrors[name]}
+        aria-invalid={Boolean(fieldErrors[name])}
       />
 
-      {formErrors[name] && (
-        <small className="rooma-field-error">
-          {formErrors[name]}
+      {fieldErrors[name] && (
+        <small className="rooma-edit-field-error">
+          {fieldErrors[name]}
         </small>
       )}
     </div>
   );
 
-  if (isLoading) {
-    return (
-      <main className="rooma-owner-page">
-        <p>Loading property details...</p>
-      </main>
-    );
-  }
+  const renderSelect = (name, label, options) => (
+    <div className="rooma-edit-field" key={name}>
+      <label htmlFor={`edit-${name}`}>
+        {label}
+      </label>
 
-  if (errorMessage && !formData.propertyTitle) {
-    return (
-      <main className="rooma-owner-page">
-        <p className="rooma-form-message error">{errorMessage}</p>
-        <Link to="/owner/properties">Back to Properties</Link>
-      </main>
-    );
-  }
+      <select
+        id={`edit-${name}`}
+        value={formData[name]}
+        onChange={(event) =>
+          updateField(name, event.target.value)
+        }
+      >
+        {options.map(([value, labelText]) => (
+          <option key={value} value={value}>
+            {labelText}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  // ----------------------------------
+  // Page content
+  // ----------------------------------
 
   return (
-    <main className="rooma-owner-page">
-      <div className="rooma-owner-container">
+    <main className="rooma-edit-page">
+      <div className="rooma-edit-container">
 
-        <header className="rooma-owner-header">
+        <div className="rooma-edit-navigation">
+          <Button
+            as={Link}
+            to="/owner/properties"
+            variant="secondary"
+            size="small"
+          >
+            ← Back to Properties
+          </Button>
+        </div>
+
+        <header className="rooma-edit-header">
           <div>
-            <span className="rooma-owner-eyebrow">
+            <span className="rooma-edit-eyebrow">
               ROOMA / PROPERTY MANAGEMENT
             </span>
             <h1>Edit Property</h1>
-            <p>Update your accommodation listing information.</p>
+            <p>
+              Update your property information and
+              save your changes.
+            </p>
           </div>
-
-          <Link to="/owner/properties">
-            Back to Properties
-          </Link>
         </header>
 
-        <form
-          className="rooma-property-form"
-          onSubmit={handleSubmit}
-          noValidate
-        >
-          <section className="rooma-form-section">
-            <div className="rooma-form-section-heading">
-              <span className="rooma-form-step sage">01</span>
-              <div>
-                <h2>Basic Property Information</h2>
-                <p>Edit your existing property information.</p>
-              </div>
-            </div>
+        {isLoading && (
+          <Card padding="large">
+            <p>Loading property information...</p>
+          </Card>
+        )}
 
-            <div className="rooma-form-grid">
-              {inputField("propertyTitle", "Property Title")}
+        {loadError && !isLoading && (
+          <Card padding="large">
+            <p className="rooma-edit-error" role="alert">
+              {loadError}
+            </p>
+          </Card>
+        )}
 
-              <div className="rooma-field">
-                <label htmlFor="propertyType">Property Type</label>
-                <select
-                  id="propertyType"
-                  value={formData.propertyType}
-                  onChange={(event) =>
-                    updateField("propertyType", event.target.value)
-                  }
-                >
-                  {propertyTypes.map(([value, label]) => (
-                    <option value={value} key={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        {!isLoading && !loadError && (
+          <form
+            className="rooma-edit-form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
+            {errorMessage && (
+              <p className="rooma-edit-error" role="alert">
+                {errorMessage}
+              </p>
+            )}
 
-              <div className="rooma-field">
-                <label htmlFor="propertyStatus">Property Status</label>
-                <select
-                  id="propertyStatus"
-                  value={formData.propertyStatus}
-                  onChange={(event) =>
-                    updateField("propertyStatus", event.target.value)
-                  }
-                >
-                  {propertyStatuses.map(([value, label]) => (
-                    <option value={value} key={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+            {/* SECTION 1 */}
+
+            <Card
+              as="section"
+              padding="large"
+              className="rooma-edit-section"
+            >
+              <div className="rooma-edit-section-heading">
+                <span className="rooma-edit-step">01</span>
+                <div>
+                  <h2>Basic Property Information</h2>
+                  <p>Edit the main information for your listing.</p>
+                </div>
               </div>
 
-              <div className="rooma-field rooma-full-width">
-                <label htmlFor="propertyDescription">
-                  Property Description
-                </label>
-                <textarea
-                  id="propertyDescription"
-                  rows={5}
-                  value={formData.propertyDescription}
-                  onChange={(event) =>
-                    updateField("propertyDescription", event.target.value)
-                  }
-                />
-                {formErrors.propertyDescription && (
-                  <small className="rooma-field-error">
-                    {formErrors.propertyDescription}
-                  </small>
+              <div className="rooma-edit-grid">
+                <div className="rooma-edit-field">
+                  <label>Owner ID</label>
+                  <input
+                    value={formData.ownerId || ""}
+                    readOnly
+                    disabled
+                    title="Owner ID cannot be changed here."
+                  />
+                </div>
+
+                {renderInput(
+                  "propertyTitle",
+                  "Property Title"
+                )}
+
+                {renderSelect(
+                  "propertyType",
+                  "Property Type",
+                  propertyTypes
+                )}
+
+                {renderSelect(
+                  "propertyStatus",
+                  "Property Status",
+                  propertyStatuses
+                )}
+
+                <div className="rooma-edit-field rooma-edit-full">
+                  <label htmlFor="edit-description">
+                    Property Description
+                  </label>
+
+                  <textarea
+                    id="edit-description"
+                    rows={4}
+                    value={formData.propertyDescription}
+                    onChange={(event) =>
+                      updateField(
+                        "propertyDescription",
+                        event.target.value
+                      )
+                    }
+                    aria-invalid={Boolean(
+                      fieldErrors.propertyDescription
+                    )}
+                  />
+
+                  {fieldErrors.propertyDescription && (
+                    <small className="rooma-edit-field-error">
+                      {fieldErrors.propertyDescription}
+                    </small>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            {/* SECTION 2 */}
+
+            <Card
+              as="section"
+              padding="large"
+              className="rooma-edit-section"
+            >
+              <div className="rooma-edit-section-heading">
+                <span className="rooma-edit-step">02</span>
+                <div>
+                  <h2>Location Details</h2>
+                  <p>Keep your property's location accurate.</p>
+                </div>
+              </div>
+
+              <div className="rooma-edit-grid">
+                {renderInput("address", "Address")}
+                {renderInput("city", "City")}
+                {renderInput("area", "Area")}
+                {renderInput(
+                  "nearbyLandmark",
+                  "Nearby Landmark"
+                )}
+                {renderInput(
+                  "latitude",
+                  "Latitude",
+                  "number",
+                  { min: -90, max: 90, step: "any" }
+                )}
+                {renderInput(
+                  "longitude",
+                  "Longitude",
+                  "number",
+                  { min: -180, max: 180, step: "any" }
                 )}
               </div>
-            </div>
-          </section>
+            </Card>
 
-          <section className="rooma-form-section">
-            <div className="rooma-form-section-heading">
-              <span className="rooma-form-step peach">02</span>
-              <div>
-                <h2>Property Location</h2>
-                <p>Update the address and location details.</p>
-              </div>
-            </div>
+            {/* SECTION 3 */}
 
-            <div className="rooma-form-grid">
-              {inputField("address", "Address")}
-              {inputField("city", "City")}
-              {inputField("area", "Area")}
-              {inputField("nearbyLandmark", "Nearby Landmark")}
-              {inputField("latitude", "Latitude", "number", {
-                min: -90, max: 90, step: "any"
-              })}
-              {inputField("longitude", "Longitude", "number", {
-                min: -180, max: 180, step: "any"
-              })}
-            </div>
-          </section>
-
-          <section className="rooma-form-section">
-            <div className="rooma-form-section-heading">
-              <span className="rooma-form-step lavender">03</span>
-              <div>
-                <h2>Pricing Details</h2>
-                <p>Update rent and payment information.</p>
-              </div>
-            </div>
-
-            <div className="rooma-form-grid">
-              {inputField("monthlyRent", "Monthly Rent (LKR)", "number", {
-                min: 0
-              })}
-              {inputField("rentPerPerson", "Rent Per Person (LKR)", "number", {
-                min: 0
-              })}
-              {inputField("depositAmount", "Deposit Amount (LKR)", "number", {
-                min: 0
-              })}
-              {inputField("advanceAmount", "Advance Amount (LKR)", "number", {
-                min: 0
-              })}
-            </div>
-
-            <label className="rooma-form-checkbox">
-              <input
-                type="checkbox"
-                checked={formData.isNegotiable}
-                onChange={(event) =>
-                  updateField("isNegotiable", event.target.checked)
-                }
-              />
-              Is the rent negotiable?
-            </label>
-          </section>
-
-          <section className="rooma-form-section">
-            <div className="rooma-form-section-heading">
-              <span className="rooma-form-step sage">04</span>
-              <div>
-                <h2>Availability & Occupancy</h2>
-                <p>Update room availability and capacity.</p>
-              </div>
-            </div>
-
-            <div className="rooma-form-grid">
-              {inputField("availableFrom", "Available From", "date")}
-              {inputField("maximumOccupants", "Maximum Occupants", "number", {
-                min: 1, step: 1
-              })}
-              {inputField("currentOccupants", "Current Occupants", "number", {
-                min: 0, step: 1
-              })}
-              {inputField("availableSpaces", "Available Spaces", "number", {
-                min: 0, step: 1
-              })}
-            </div>
-          </section>
-
-          <section className="rooma-form-section">
-            <div className="rooma-form-section-heading">
-              <span className="rooma-form-step lavender">05</span>
-              <div>
-                <h2>Photos & Property Rules</h2>
-                <p>Manage the other details of your property.</p>
-              </div>
-            </div>
-
-            <div className="rooma-form-footer">
-              <Link
-                className="rooma-form-cancel"
-                to={`/owner/properties/${propertyId}/images`}
-                style={{ textDecoration: "none" }}
-              >
-                Manage Images
-              </Link>
-
-              <Link
-                className="rooma-form-cancel"
-                to={`/owner/properties/${propertyId}/rules`}
-                style={{ textDecoration: "none" }}
-              >
-                Manage Rules
-              </Link>
-            </div>
-          </section>
-
-          {errorMessage && (
-            <p className="rooma-form-message error" role="alert">
-              {errorMessage}
-            </p>
-          )}
-
-          {successMessage && (
-            <p className="rooma-form-message success" role="status">
-              {successMessage}
-            </p>
-          )}
-
-          <div className="rooma-form-footer">
-            <button
-              type="button"
-              className="rooma-form-cancel"
-              onClick={() => navigate("/owner/properties")}
+            <Card
+              as="section"
+              padding="large"
+              className="rooma-edit-section"
             >
-              Cancel
-            </button>
+              <div className="rooma-edit-section-heading">
+                <span className="rooma-edit-step">03</span>
+                <div>
+                  <h2>Pricing Details</h2>
+                  <p>Update rent and other charges.</p>
+                </div>
+              </div>
 
-            <button
-              type="submit"
-              className="rooma-form-save"
-              disabled={isSubmitting}
+              <div className="rooma-edit-grid">
+                {renderInput(
+                  "monthlyRent",
+                  "Monthly Rent (LKR)",
+                  "number",
+                  { min: 0 }
+                )}
+                {renderInput(
+                  "rentPerPerson",
+                  "Rent Per Person (LKR)",
+                  "number",
+                  { min: 0 }
+                )}
+                {renderInput(
+                  "depositAmount",
+                  "Deposit Amount (LKR)",
+                  "number",
+                  { min: 0 }
+                )}
+                {renderInput(
+                  "advanceAmount",
+                  "Advance Amount (LKR)",
+                  "number",
+                  { min: 0 }
+                )}
+              </div>
+
+              <label className="rooma-edit-checkbox">
+                <input
+                  type="checkbox"
+                  checked={formData.isNegotiable}
+                  onChange={(event) =>
+                    updateField(
+                      "isNegotiable",
+                      event.target.checked
+                    )
+                  }
+                />
+                Is the rent negotiable?
+              </label>
+            </Card>
+
+            {/* SECTION 4 */}
+
+            <Card
+              as="section"
+              padding="large"
+              className="rooma-edit-section"
             >
-              {isSubmitting ? "Saving Changes..." : "Save Changes"}
-            </button>
-          </div>
-        </form>
+              <div className="rooma-edit-section-heading">
+                <span className="rooma-edit-step">04</span>
+                <div>
+                  <h2>Availability & Occupancy</h2>
+                  <p>Update your property's capacity and status.</p>
+                </div>
+              </div>
+
+              <div className="rooma-edit-grid">
+                {renderInput(
+                  "availableFrom",
+                  "Available From",
+                  "date"
+                )}
+                {renderInput(
+                  "maximumOccupants",
+                  "Maximum Occupants",
+                  "number",
+                  { min: 1, step: 1 }
+                )}
+                {renderInput(
+                  "currentOccupants",
+                  "Current Occupants",
+                  "number",
+                  { min: 0, step: 1 }
+                )}
+                {renderInput(
+                  "availableSpaces",
+                  "Available Spaces",
+                  "number",
+                  { min: 0, step: 1 }
+                )}
+              </div>
+            </Card>
+
+            {/* SECTION 5 */}
+
+            <Card
+              as="section"
+              padding="medium"
+              className="rooma-edit-section rooma-edit-related"
+            >
+              <div>
+                <h2>Property Photos & Rules</h2>
+                <p>
+                  Photos and property rules can be
+                  updated separately.
+                </p>
+              </div>
+
+              <div className="rooma-edit-related-actions">
+                <Button
+                  as={Link}
+                  to={`/owner/properties/${propertyId}/images`}
+                  variant="secondary"
+                  size="small"
+                >
+                  Manage Images
+                </Button>
+
+                <Button
+                  as={Link}
+                  to={`/owner/properties/${propertyId}/rules`}
+                  variant="secondary"
+                  size="small"
+                >
+                  Manage Rules
+                </Button>
+              </div>
+            </Card>
+
+            {/* FORM FOOTER */}
+
+            <div className="rooma-edit-footer">
+              <Button
+                as={Link}
+                to="/owner/properties"
+                variant="secondary"
+                disabled={isSaving}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isSaving}
+              >
+                {isSaving
+                  ? "Saving Changes..."
+                  : "Save Changes"}
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
     </main>
   );

@@ -1,7 +1,7 @@
-
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PropertyForm.css";
+import Button from "../ui/Button";
 
 const API_URL = "http://localhost:5000";
 
@@ -25,7 +25,7 @@ const initialFormData = {
   availableFrom: "",
   maximumOccupants: "",
   currentOccupants: "0",
-  availableSpaces: ""
+  availableSpaces: "",
 };
 
 const propertyTypes = [
@@ -35,7 +35,7 @@ const propertyTypes = [
   ["house_room", "House Room"],
   ["hostel", "Hostel"],
   ["studio", "Studio"],
-  ["shared_room", "Shared Room"]
+  ["shared_room", "Shared Room"],
 ];
 
 const propertyStatuses = [
@@ -43,7 +43,7 @@ const propertyStatuses = [
   ["reserved", "Reserved"],
   ["occupied", "Occupied"],
   ["temporarily_unavailable", "Temporarily Unavailable"],
-  ["inactive", "Inactive"]
+  ["inactive", "Inactive"],
 ];
 
 const numberFields = [
@@ -55,7 +55,7 @@ const numberFields = [
   "advanceAmount",
   "maximumOccupants",
   "currentOccupants",
-  "availableSpaces"
+  "availableSpaces",
 ];
 
 const optionalNumberFields = [
@@ -64,7 +64,7 @@ const optionalNumberFields = [
   "rentPerPerson",
   "depositAmount",
   "advanceAmount",
-  "availableSpaces"
+  "availableSpaces",
 ];
 
 function PropertyForm() {
@@ -80,8 +80,9 @@ function PropertyForm() {
   const [uploadProgress, setUploadProgress] = useState("");
   const [createdPropertyId, setCreatedPropertyId] = useState(null);
   const previewUrls = useRef(new Set());
+  const errorSummaryRef = useRef(null);
 
-// Revoke preview URLs on unmount, not after each image selection.
+  // Revoke preview URLs on unmount, not after each image selection.
   useEffect(() => {
     return () => {
       previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
@@ -118,7 +119,7 @@ function PropertyForm() {
         file,
         previewUrl,
         imageType: "room",
-        isCoverImage: false
+        isCoverImage: false,
       };
     });
 
@@ -127,7 +128,7 @@ function PropertyForm() {
       if (combined.length && !combined.some((image) => image.isCoverImage)) {
         return combined.map((image, index) => ({
           ...image,
-          isCoverImage: index === 0
+          isCoverImage: index === 0,
         }));
       }
       return combined;
@@ -145,7 +146,7 @@ function PropertyForm() {
       if (remaining.length && !remaining.some((image) => image.isCoverImage)) {
         return remaining.map((image, index) => ({
           ...image,
-          isCoverImage: index === 0
+          isCoverImage: index === 0,
         }));
       }
       return remaining;
@@ -153,27 +154,31 @@ function PropertyForm() {
   };
 
   const setCoverImage = (imageId) => {
-    setSelectedImages((previous) => previous.map((image) => ({
-      ...image,
-      isCoverImage: image.imageId === imageId
-    })));
+    setSelectedImages((previous) =>
+      previous.map((image) => ({
+        ...image,
+        isCoverImage: image.imageId === imageId,
+      })),
+    );
   };
 
   const updateImageType = (imageId, imageType) => {
-    setSelectedImages((previous) => previous.map((image) =>
-      image.imageId === imageId ? { ...image, imageType } : image
-    ));
+    setSelectedImages((previous) =>
+      previous.map((image) =>
+        image.imageId === imageId ? { ...image, imageType } : image,
+      ),
+    );
   };
 
   const updateField = (name, value) => {
     setFormData((previous) => ({
       ...previous,
-      [name]: value
+      [name]: value,
     }));
 
     setFormErrors((previous) => ({
       ...previous,
-      [name]: ""
+      [name]: "",
     }));
 
     setErrorMessage("");
@@ -190,7 +195,7 @@ function PropertyForm() {
       "address",
       "city",
       "area",
-      "monthlyRent"
+      "monthlyRent",
     ];
 
     requiredFields.forEach((field) => {
@@ -217,16 +222,14 @@ function PropertyForm() {
 
     if (
       formData.latitude !== "" &&
-      (Number(formData.latitude) < -90 ||
-       Number(formData.latitude) > 90)
+      (Number(formData.latitude) < -90 || Number(formData.latitude) > 90)
     ) {
       errors.latitude = "Latitude must be between -90 and 90";
     }
 
     if (
       formData.longitude !== "" &&
-      (Number(formData.longitude) < -180 ||
-       Number(formData.longitude) > 180)
+      (Number(formData.longitude) < -180 || Number(formData.longitude) > 180)
     ) {
       errors.longitude = "Longitude must be between -180 and 180";
     }
@@ -240,8 +243,7 @@ function PropertyForm() {
 
     if (
       formData.maximumOccupants !== "" &&
-      Number(formData.currentOccupants) >
-      Number(formData.maximumOccupants)
+      Number(formData.currentOccupants) > Number(formData.maximumOccupants)
     ) {
       errors.currentOccupants =
         "Current occupants cannot exceed maximum occupants";
@@ -254,7 +256,7 @@ function PropertyForm() {
     const integerFields = [
       "maximumOccupants",
       "currentOccupants",
-      "availableSpaces"
+      "availableSpaces",
     ];
 
     integerFields.forEach((field) => {
@@ -270,20 +272,42 @@ function PropertyForm() {
       formData.availableSpaces !== "" &&
       formData.maximumOccupants !== "" &&
       Number(formData.availableSpaces) >
-        Number(formData.maximumOccupants) -
-        Number(formData.currentOccupants)
+        Number(formData.maximumOccupants) - Number(formData.currentOccupants)
     ) {
-      errors.availableSpaces =
-        "Available spaces exceed remaining capacity";
+      errors.availableSpaces = "Available spaces exceed remaining capacity";
     }
 
     setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    const invalidFields = Object.keys(errors);
+    if (invalidFields.length) {
+      setErrorMessage(
+        "Please correct the highlighted fields before creating your property.",
+      );
+      requestAnimationFrame(() => {
+        errorSummaryRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        document
+          .getElementById(invalidFields[0])
+          ?.focus({ preventScroll: true });
+      });
+      return false;
+    }
+    setErrorMessage("");
+    return true;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (isSubmitting || createdPropertyId || !validateForm()) return;
+    if (isSubmitting) return;
+    if (createdPropertyId) {
+      setErrorMessage(
+        "This property was already created. Please manage its photos from Manage Properties.",
+      );
+      return;
+    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
     setErrorMessage("");
@@ -308,11 +332,24 @@ function PropertyForm() {
       const response = await fetch(`${API_URL}/api/properties`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
-      const result = await response.json();
-      if (!response.ok || !result.success || !result.data?.propertyId) {
-        throw new Error(result.message || "Failed to create property");
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.success || !result?.data?.propertyId) {
+        const details = Array.isArray(result?.errors)
+          ? result.errors
+              .map((item) =>
+                typeof item === "string"
+                  ? item
+                  : item.message || item.msg || JSON.stringify(item),
+              )
+              .join("; ")
+          : "";
+        throw new Error(
+          details ||
+            result?.message ||
+            `Failed to create property (HTTP ${response.status})`,
+        );
       }
 
       propertyId = result.data.propertyId;
@@ -322,7 +359,9 @@ function PropertyForm() {
       const uploadedImages = [];
       for (let index = 0; index < selectedImages.length; index++) {
         const image = selectedImages[index];
-        setUploadProgress(`Uploading ${index + 1} of ${selectedImages.length} images...`);
+        setUploadProgress(
+          `Uploading ${index + 1} of ${selectedImages.length} images...`,
+        );
 
         const imageFormData = new FormData();
         imageFormData.append("image", image.file);
@@ -330,15 +369,22 @@ function PropertyForm() {
 
         const imageResponse = await fetch(
           `${API_URL}/api/property-images/${encodeURIComponent(propertyId)}`,
-          { method: "POST", body: imageFormData }
+          { method: "POST", body: imageFormData },
         );
-        const imageResult = await imageResponse.json();
-        if (!imageResponse.ok || !imageResult.success) {
-          throw new Error(imageResult.message || `Image ${index + 1} upload failed`);
+        const imageResult = await imageResponse.json().catch(() => null);
+        if (
+          !imageResponse.ok ||
+          !imageResult?.success ||
+          !imageResult?.data?.imageId
+        ) {
+          throw new Error(
+            imageResult?.message ||
+              `Image ${index + 1} upload failed (HTTP ${imageResponse.status})`,
+          );
         }
         uploadedImages.push({
           imageId: imageResult.data.imageId,
-          isCoverImage: image.isCoverImage
+          isCoverImage: image.isCoverImage,
         });
       }
 
@@ -346,7 +392,7 @@ function PropertyForm() {
       if (coverImage) {
         const response = await fetch(
           `${API_URL}/api/property-images/${encodeURIComponent(propertyId)}/${encodeURIComponent(coverImage.imageId)}/cover`,
-          { method: "PUT" }
+          { method: "PUT" },
         );
         const result = await response.json();
         if (!response.ok || !result.success) {
@@ -355,18 +401,31 @@ function PropertyForm() {
       }
 
       navigate("/owner/properties", {
-        state: { successMessage: "Property and photos saved successfully!" }
+        state: {
+          successMessage: selectedImages.length
+            ? "Property and photos saved successfully!"
+            : "Property created successfully!",
+        },
       });
     } catch (error) {
       if (propertyId) {
         // Property exists; do not POST it again. Continue image management.
         navigate(`/owner/properties/${encodeURIComponent(propertyId)}/images`, {
           state: {
-            successMessage: `Property created, but image upload needs attention: ${error.message}`
-          }
+            successMessage: `Property created, but image upload needs attention: ${error.message}`,
+          },
         });
       } else {
-        setErrorMessage(error.message);
+        setErrorMessage(
+          error.message ||
+            "Unable to connect to the server. Check the backend terminal.",
+        );
+        requestAnimationFrame(() =>
+          errorSummaryRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          }),
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -390,19 +449,29 @@ function PropertyForm() {
         aria-invalid={!!formErrors[name]}
       />
       {formErrors[name] && (
-        <small className="rooma-field-error">
-          {formErrors[name]}
-        </small>
+        <small className="rooma-field-error">{formErrors[name]}</small>
       )}
     </div>
   );
 
   return (
-    <form
-      className="rooma-property-form"
-      onSubmit={handleSubmit}
-      noValidate
-    >
+    <form className="rooma-property-form" onSubmit={handleSubmit} noValidate>
+      <div ref={errorSummaryRef}>
+        {errorMessage && (
+          <div className="rooma-form-message error" role="alert" tabIndex={-1}>
+            <strong>Could not create property.</strong> {errorMessage}
+            {Object.keys(formErrors).length > 0 && (
+              <ul>
+                {Object.entries(formErrors).map(([field, message]) => (
+                  <li key={field}>
+                    {field}: {message}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
       <div className="rooma-form-section">
         <div className="rooma-form-section-heading">
           <span className="rooma-form-step sage">01</span>
@@ -413,10 +482,7 @@ function PropertyForm() {
         </div>
 
         <div className="rooma-form-grid">
-          {inputField(
-            "ownerId",
-            "Owner ID (Development Only)"
-          )}
+          {inputField("ownerId", "Owner ID (Development Only)")}
 
           {inputField("propertyTitle", "Property Title")}
 
@@ -455,9 +521,7 @@ function PropertyForm() {
           </div>
 
           <div className="rooma-field rooma-full-width">
-            <label htmlFor="propertyDescription">
-              Property Description
-            </label>
+            <label htmlFor="propertyDescription">Property Description</label>
             <textarea
               id="propertyDescription"
               rows={4}
@@ -492,10 +556,14 @@ function PropertyForm() {
           {inputField("area", "Area")}
           {inputField("nearbyLandmark", "Nearby Landmark")}
           {inputField("latitude", "Latitude", "number", {
-            step: "any", min: -90, max: 90
+            step: "any",
+            min: -90,
+            max: 90,
           })}
           {inputField("longitude", "Longitude", "number", {
-            step: "any", min: -180, max: 180
+            step: "any",
+            min: -180,
+            max: 180,
           })}
         </div>
       </div>
@@ -511,16 +579,16 @@ function PropertyForm() {
 
         <div className="rooma-form-grid">
           {inputField("monthlyRent", "Monthly Rent (LKR)", "number", {
-            min: 0
+            min: 0,
           })}
           {inputField("rentPerPerson", "Rent Per Person (LKR)", "number", {
-            min: 0
+            min: 0,
           })}
           {inputField("depositAmount", "Deposit Amount (LKR)", "number", {
-            min: 0
+            min: 0,
           })}
           {inputField("advanceAmount", "Advance Amount (LKR)", "number", {
-            min: 0
+            min: 0,
           })}
         </div>
 
@@ -547,24 +615,18 @@ function PropertyForm() {
 
         <div className="rooma-form-grid">
           {inputField("availableFrom", "Available From", "date")}
-          {inputField(
-            "maximumOccupants",
-            "Maximum Occupants",
-            "number",
-            { min: 1, step: 1 }
-          )}
-          {inputField(
-            "currentOccupants",
-            "Current Occupants",
-            "number",
-            { min: 0, step: 1 }
-          )}
-          {inputField(
-            "availableSpaces",
-            "Available Spaces",
-            "number",
-            { min: 0, step: 1 }
-          )}
+          {inputField("maximumOccupants", "Maximum Occupants", "number", {
+            min: 1,
+            step: 1,
+          })}
+          {inputField("currentOccupants", "Current Occupants", "number", {
+            min: 0,
+            step: 1,
+          })}
+          {inputField("availableSpaces", "Available Spaces", "number", {
+            min: 0,
+            step: 1,
+          })}
         </div>
       </div>
 
@@ -590,8 +652,14 @@ function PropertyForm() {
           />
         </label>
 
-        <p className="rooma-photo-count">{selectedImages.length} / 20 photos selected</p>
-        {imageError && <p className="rooma-form-message error" role="alert">{imageError}</p>}
+        <p className="rooma-photo-count">
+          {selectedImages.length} / 20 photos selected
+        </p>
+        {imageError && (
+          <p className="rooma-form-message error" role="alert">
+            {imageError}
+          </p>
+        )}
 
         <div className="rooma-photo-grid">
           {selectedImages.map((image) => (
@@ -603,11 +671,15 @@ function PropertyForm() {
                 )}
               </div>
               <div className="rooma-photo-options">
-                <label htmlFor={`imageType-${image.imageId}`}>Photo category</label>
+                <label htmlFor={`imageType-${image.imageId}`}>
+                  Photo category
+                </label>
                 <select
                   id={`imageType-${image.imageId}`}
                   value={image.imageType}
-                  onChange={(event) => updateImageType(image.imageId, event.target.value)}
+                  onChange={(event) =>
+                    updateImageType(image.imageId, event.target.value)
+                  }
                   disabled={isSubmitting}
                 >
                   <option value="room">Room</option>
@@ -620,16 +692,20 @@ function PropertyForm() {
                   <option value="other">Other</option>
                 </select>
                 <div className="rooma-photo-actions">
-                  <button
+                  <Button
                     type="button"
                     disabled={image.isCoverImage || isSubmitting}
                     onClick={() => setCoverImage(image.imageId)}
-                  >Set Cover</button>
-                  <button
+                  >
+                    Set Cover
+                  </Button>
+                  <Button
                     type="button"
                     disabled={isSubmitting}
                     onClick={() => removeImage(image.imageId)}
-                  >Remove</button>
+                  >
+                    Remove
+                  </Button>
                 </div>
               </div>
             </div>
@@ -638,12 +714,8 @@ function PropertyForm() {
       </div>
 
       {uploadProgress && (
-        <p className="rooma-form-message success" role="status">{uploadProgress}</p>
-      )}
-
-      {errorMessage && (
-        <p className="rooma-form-message error" role="alert">
-          {errorMessage}
+        <p className="rooma-form-message success" role="status">
+          {uploadProgress}
         </p>
       )}
 
@@ -654,21 +726,19 @@ function PropertyForm() {
       )}
 
       <div className="rooma-form-footer">
-        <button
+        <Button
           type="button"
-          className="rooma-form-cancel"
+          variant="secondary"
           onClick={() => navigate("/owner/properties")}
         >
           Cancel
-        </button>
+        </Button>
 
-        <button
-          type="submit"
-          className="rooma-form-save"
-          disabled={isSubmitting || !!createdPropertyId}
-        >
-          {isSubmitting ? "Saving Property & Photos..." : "Create Property"}
-        </button>
+        <Button type="submit" variant="primary" disabled={isSubmitting}>
+          {isSubmitting ? "Creating..." : "Create Property"}
+        </Button>
+
+        
       </div>
     </form>
   );
