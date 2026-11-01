@@ -1,0 +1,28 @@
+.rooma-details-page{min-height:100vh;padding:32px 24px 70px;background:var(--rooma-background,#F7FBFD);color:var(--rooma-text-primary,#2F3A3F)}
+.rooma-details-page *{box-sizing:border-box}
+.rooma-details-container{max-width:1100px;margin:auto}
+.rooma-details-topline{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;margin-bottom:25px}
+.rooma-details-eyebrow{font-size:11px;letter-spacing:1.5px;font-weight:800;color:var(--rooma-primary-dark,#6FAFC8)}
+.rooma-details-topline h1{font-size:clamp(24px,3vw,34px);margin:9px 0;color:var(--rooma-text-primary,#2F3A3F)}
+.rooma-details-topline p{font-size:13px;line-height:1.6;margin:0;color:var(--rooma-text-secondary,#6F7C82)}
+.rooma-details-section.rooma-ui-card{margin-bottom:18px;border-radius:22px}
+.rooma-details-section-heading{display:flex;align-items:center;gap:14px;margin-bottom:23px}
+.rooma-details-step{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:14px;background:var(--rooma-primary-soft,#DCEFF5);color:#548DA6;font-size:13px;font-weight:800}
+.rooma-details-section:nth-of-type(3n+2) .rooma-details-step{background:var(--rooma-accent,#D8C9EA);color:#765F8B}
+.rooma-details-section-heading h2{font-size:18px;margin:0 0 5px}
+.rooma-details-section-heading p{font-size:12px;color:var(--rooma-text-secondary,#6F7C82);margin:0}
+.rooma-details-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 24px}
+.rooma-details-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.rooma-details-field label{font-size:12px;font-weight:650}
+.rooma-details-field input,.rooma-details-field select{width:100%;padding:11px 13px;min-height:44px;font:inherit;font-size:13px;background:white;color:var(--rooma-text-primary,#2F3A3F);border:1px solid var(--rooma-border,#DDEBF0);border-radius:12px;outline:none}
+.rooma-details-field input:focus,.rooma-details-field select:focus{border-color:var(--rooma-primary-dark,#6FAFC8);box-shadow:0 0 0 3px rgba(173,216,230,.2)}
+.rooma-details-field input[aria-invalid=true]{border-color:var(--rooma-error,#C56A72)}
+.rooma-details-field-error{font-size:11px;color:var(--rooma-error,#C56A72)}
+.rooma-details-toggle{display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:48px;padding:11px 13px;border:1px solid var(--rooma-border,#DDEBF0);border-radius:12px;background:var(--rooma-primary-very-soft,#F2F9FC);cursor:pointer}
+.rooma-details-toggle span{font-size:13px;font-weight:550}
+.rooma-details-toggle input{width:18px;height:18px;accent-color:var(--rooma-primary-dark,#6FAFC8);cursor:pointer}
+.rooma-details-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:25px}
+.rooma-details-message{border-radius:12px;padding:14px 18px;font-size:13px;margin:0 0 20px}
+.rooma-details-message.error{color:#A34D59;background:#FBEDEF;border:1px solid #F2D9DF}
+.rooma-details-message.success{color:#43795A;background:#EAF7EF;border:1px solid #D0E9DB}
+@media(max-width:650px){.rooma-details-page{padding:20px 14px 50px}.rooma-details-grid{grid-template-columns:1fr}.rooma-details-actions{flex-direction:column-reverse}.rooma-details-actions .rooma-ui-button{width:100%}}
