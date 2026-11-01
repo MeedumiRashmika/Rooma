@@ -1,0 +1,66 @@
+
+:root {
+  /* Main brand */
+  --rooma-primary: #ADD8E6;
+  --rooma-primary-hover: #8FC4D8;
+  --rooma-primary-dark: #6FAFC8;
+
+  /* Supporting colours */
+  --rooma-secondary: #C9D9F0;
+  --rooma-accent: #D8C9EA;
+
+  /* Soft pastel colours */
+  --rooma-primary-soft: #DCEFF5;
+  --rooma-primary-very-soft: #F2F9FC;
+
+  /* Warm complementary pastel */
+  --rooma-soft-peach: #F4D8CC;
+  --rooma-soft-cream: #FFF7EE;
+
+  /* Backgrounds */
+  --rooma-background: #F7FBFD;
+  --rooma-surface: #FFFFFF;
+
+  /* Text */
+  --rooma-text-primary: #2F3A3F;
+  --rooma-text-secondary: #6F7C82;
+
+  /* Borders */
+  --rooma-border: #DDEBF0;
+
+  /* Status colours */
+  --rooma-success: #6FAF8A;
+  --rooma-warning: #D5A45B;
+  --rooma-error: #C56A72;
+
+  /* Border radius */
+  --rooma-radius-sm: 8px;
+  --rooma-radius-md: 14px;
+  --rooma-radius-lg: 20px;
+  --rooma-radius-xl: 28px;
+
+  /* Shadows */
+  --rooma-shadow-sm:
+    0 6px 18px rgba(111, 175, 200, 0.08);
+
+  --rooma-shadow-md:
+    0 12px 30px rgba(111, 175, 200, 0.12);
+
+  --rooma-shadow-lg:
+    0 20px 50px rgba(111, 175, 200, 0.16);
+
+  /* Spacing */
+  --rooma-space-xs: 4px;
+  --rooma-space-sm: 8px;
+  --rooma-space-md: 16px;
+  --rooma-space-lg: 24px;
+  --rooma-space-xl: 32px;
+
+  /* Gradients */
+  --rooma-gradient-hero: linear-gradient(
+    120deg,
+    #F2F9FC 0%,
+    #DCEFF5 50%,
+    #C9D9F0 100%
+  );
+}

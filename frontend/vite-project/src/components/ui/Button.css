@@ -1,0 +1,99 @@
+
+.rooma-ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.rooma-ui-button--small {
+  min-height: 36px;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
+.rooma-ui-button--medium {
+  min-height: 46px;
+  padding: 12px 22px;
+  font-size: 14px;
+}
+
+.rooma-ui-button--large {
+  min-height: 52px;
+  padding: 14px 28px;
+  font-size: 16px;
+}
+
+.rooma-ui-button--full {
+  width: 100%;
+}
+
+/* PRIMARY */
+.rooma-ui-button--primary {
+  background: var(--rooma-primary, #ADD8E6);
+  color: var(--rooma-text-primary, #2F3A3F);
+}
+
+.rooma-ui-button--primary:hover:not(:disabled) {
+  background: var(--rooma-primary-hover, #8FC4D8);
+  transform: translateY(-1px);
+}
+
+/* SECONDARY */
+.rooma-ui-button--secondary {
+  background: var(--rooma-primary-very-soft, #F2F9FC);
+  color: var(--rooma-text-primary, #2F3A3F);
+  border-color: var(--rooma-border, #DDEBF0);
+}
+
+.rooma-ui-button--secondary:hover:not(:disabled) {
+  background: var(--rooma-primary-soft, #DCEFF5);
+}
+
+/* OUTLINE */
+.rooma-ui-button--outline {
+  background: #FFFFFF;
+  color: var(--rooma-text-primary, #2F3A3F);
+  border-color: var(--rooma-border, #DDEBF0);
+}
+
+.rooma-ui-button--outline:hover:not(:disabled) {
+  background: var(--rooma-primary-very-soft, #F2F9FC);
+}
+
+/* DANGER */
+.rooma-ui-button--danger {
+  background: #FFF1F1;
+  color: var(--rooma-error, #C56A72);
+  border-color: #F2D3D7;
+}
+
+.rooma-ui-button--danger:hover:not(:disabled) {
+  background: #FBE4E7;
+}
+
+.rooma-ui-button:focus-visible {
+  outline: 3px solid var(--rooma-primary-dark, #6FAFC8);
+  outline-offset: 2px;
+}
+
+.rooma-ui-button:disabled,
+.rooma-ui-button[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
